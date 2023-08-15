@@ -60,11 +60,12 @@ if __name__ == "__main__":
             # Reconhece o cmd copiar
             if entry[3:6] == 'cpy':
                 caminho_arq = os.path.join(os.getcwd(), entry[6:len(entry)-1])
-                
+                tam_arq = str(math.ceil(os.path.getsize(caminho_arq) / 1024))
+                soc.sendall((tam_arq).encode())
                 with open(caminho_arq, 'rb') as file:
                     # Dividindo o Arquivo
-                    tam_arq = str(math.ceil(os.path.getsize(caminho_arq) / 1024))
-                    soc.send((tam_arq).encode())
+                    # tam_arq = str(math.ceil(os.path.getsize(caminho_arq) / 1024))
+                    # soc.sendall((tam_arq).encode())
                     while True:
                         data = file.read(1024)
                         if not data:
