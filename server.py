@@ -1,8 +1,6 @@
 import socket
 import selectors
 import sys
-import asyncio
-import time
 
 _HOST = 'localhost'
 _PORT = 9889
@@ -27,6 +25,7 @@ if __name__ == "__main__":
 
     # Fazendo a ligação do Socket com o endereço
     soc.bind((_HOST, _PORT))
+
     soc.listen(100)
 
     # Setando como não bloqueante
@@ -68,24 +67,18 @@ if __name__ == "__main__":
                         conn.send(('cmdcpy' + entry[9:]).encode())
                         name_arq = (entry[9:len(entry)-1])
                         print(name_arq)
-                        try:
-                            fparts = conn.recv(1024)
-                            fparts = int(fparts)
-                            with open(name_arq, 'wb') as file:
-                                # fparts = conn.recv(1024)
-                                # fparts = int(fparts)
-                                while fparts > 0:
-                                    # print('Recebendo...')
-                                    arqv = conn.recv(1024)
-                                    if not arqv:
-                                        break
-                                    file.write(arqv)
-                                    fparts -= 1
-                                    print('{} Recebido...'.format(entry[9:]))
-                                    continue
-                        except BlockingIOError:
-                            print('nao recebeu o tam do arq...')
-                            fparts = conn.recv(1024)
+                        with open(name_arq, 'wb') as file:
+                            fparts = int(conn.recv(1024).decode())
+                            while fparts > 0:
+                                print('Recebendo...')
+                                arqv = conn.recv(1024)
+                                if not arqv:
+                                    break
+                                file.write(arqv)
+                                fparts -= 1
+                                
+                            print('{} Recebido...'.format(entry[9:]))
+                            continue
                     # Se for comandos "normais"        
                     conn.send(('cmd' + entry[5:]).encode())
             else:
