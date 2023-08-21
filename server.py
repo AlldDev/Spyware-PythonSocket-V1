@@ -16,6 +16,8 @@ if __name__ == "__main__":
     conn = None
     #data_rec = None
 
+    recv_files = [None, None]
+
     # Iniciando o seletor como padrão
     sel = selectors.DefaultSelector()
 
@@ -67,18 +69,23 @@ if __name__ == "__main__":
                         conn.send(('cmdcpy' + entry[9:]).encode())
                         name_arq = (entry[9:len(entry)-1])
                         print(name_arq)
-                        with open(name_arq, 'wb') as file:
-                            fparts = int(conn.recv(1024).decode())
-                            while fparts > 0:
-                                print('Recebendo...')
-                                arqv = conn.recv(1024)
-                                if not arqv:
-                                    break
-                                file.write(arqv)
-                                fparts -= 1
+
+                        fparts = int(conn.recv(1024).decode())
+                        recv_files[0] = open(name_arq, 'wb')
+                        recv_files[1] = fparts
+                        
+                        #with open(name_arq, 'wb') as file:
+                        #    fparts = int(conn.recv(1024).decode())
+                        #    while fparts > 0:
+                        #        print('Recebendo...')
+                        #        arqv = conn.recv(1024)
+                        #        if not arqv:
+                        #            break
+                        #        file.write(arqv)
+                        #        fparts -= 1
                                 
-                            print('{} Recebido...'.format(entry[9:]))
-                            continue
+                        #    print('{} Recebido...'.format(entry[9:]))
+                        #    continue
                     # Se for comandos "normais"        
                     conn.send(('cmd' + entry[5:]).encode())
             else:
@@ -88,7 +95,17 @@ if __name__ == "__main__":
                     #exit()
                     
                 data = data.decode()
-                print('###################################\n'
-                      '>>> {}\n'
-                      '###################################\n'
-                      '{}'.format(addr, data))
+
+                if data[:3] == 'FIL':
+                    print('Recebendo pedaço do arquivo ...')
+                    recv_files[0].write(data[3:])
+                    recv_files[1] = recv_files[1] - 1
+
+                    if recv_files[1] == 0:
+                        recv_files[0].close()
+                        print('Arquivo recebido')
+                else:
+                    print('###################################\n'
+                          '>>> {}\n'
+                          '###################################\n'
+                          '{}'.format(addr, data))
