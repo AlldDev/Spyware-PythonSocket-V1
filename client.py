@@ -49,44 +49,43 @@ if __name__ == "__main__":
                     # continue
                     break
 
-            # Se o cliente não fechou a conexão, podemos tratar a mensagem
-            # Tratando se for msg
-            if entry[:3] == 'msg':
-                print(entry[3:])
-                soc.send(('Mensagem Recebida! >>> {}'.format(entry[3:])).encode())
+                # Se o cliente não fechou a conexão, podemos tratar a mensagem
+                # Tratando se for msg
+                if entry[:3] == 'msg':
+                    print(entry[3:])
+                    soc.send(('Mensagem Recebida! >>> {}'.format(entry[3:])).encode())
 
-            # Tratando se for Comando
-            if entry[:3] == 'cmd':
-                # Reconhece o cmd copiar
-                if entry[3:6] == 'cpy':
-                    caminho_arq = os.path.join(os.getcwd(), entry[6:len(entry)-1])
+                # Tratando se for Comando
+                elif entry[:3] == 'cmd':
+                    # Reconhece o cmd copiar
+                    if entry[3:6] == 'cpy':
+                        caminho_arq = os.path.join(os.getcwd(), entry[6:len(entry)-1])
                 
-                    with open(caminho_arq, 'rb') as file:
-                        # Dividindo o Arquivo
-                        tam_arq = str(math.ceil(os.path.getsize(caminho_arq) / 1024))
-                        soc.send((tam_arq).encode())
-                        while True:
-                            data = file.read(1024)
-                            if not data:
-                                break
-                            soc.send(data)
-                            print('Arquivo {} Enviado!'.format(entry[6:]))
-                            continue
+                        with open(caminho_arq, 'rb') as file:
+                            # Dividindo o Arquivo
+                            tam_arq = str(math.ceil(os.path.getsize(caminho_arq) / 512))
+                            soc.send((tam_arq).encode())
+                            while True:
+                                data = file.read(512)
+                                if not data:
+                                    break
+                                soc.send('FIL{}'.format(data))
+                                print('Arquivo {} Enviado!'.format(entry[6:]))
+                                continue
                 
-            if entry[3:] == 'cd':
-                soc.send(os.getcwd().encode())
-                continue
-            if len(entry) > 0:
-                saida = subprocess.getoutput(entry[3:])
-                print(saida)
-                soc.send(saida.encode())
+                    elif entry[3:] == 'cd':
+                        soc.send(os.getcwd().encode())
+                        continue
+                    
+                    elif len(entry) > 0:
+                        saida = subprocess.getoutput(entry[3:])
+                        print(saida)
+                        soc.send(saida.encode())
 
-            if entry[3:5] == 'cd':
-                print('Comando do Servidor >>> {}'.format(entry[6:]))
-                os.chdir(entry[6:len(entry)-1])
-                soc.send((os.getcwd()).encode())
-
-
+                    elif entry[3:5] == 'cd':
+                        print('Comando do Servidor >>> {}'.format(entry[6:]))
+                        os.chdir(entry[6:len(entry)-1])
+                        soc.send((os.getcwd()).encode())
         
         #print("[{}] {}".format(key.fileobj, entry))
         #soc.send(entry.encode())
