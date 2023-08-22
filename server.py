@@ -3,7 +3,7 @@ import selectors
 import sys
 
 _HOST = 'localhost'
-_PORT = 9889
+_PORT = 9997
 _MAX_MSG_SIZE = 4096
 
 if __name__ == "__main__":
@@ -70,9 +70,8 @@ if __name__ == "__main__":
                         name_arq = (entry[9:len(entry)-1])
                         print(name_arq)
 
-                        fparts = int(conn.recv(1024).decode())
                         recv_files[0] = open(name_arq, 'wb')
-                        recv_files[1] = fparts
+                        recv_files[1] = None
                         
                         #with open(name_arq, 'wb') as file:
                         #    fparts = int(conn.recv(1024).decode())
@@ -86,8 +85,11 @@ if __name__ == "__main__":
                                 
                         #    print('{} Recebido...'.format(entry[9:]))
                         #    continue
+                        
+                else:
                     # Se for comandos "normais"        
                     conn.send(('cmd' + entry[5:]).encode())
+                    
             else:
                 # Recebendo os Dados
                 data = key.fileobj.recv(_MAX_MSG_SIZE)
@@ -97,13 +99,35 @@ if __name__ == "__main__":
                 data = data.decode()
 
                 if data[:3] == 'FIL':
-                    print('Recebendo pedaço do arquivo ...')
-                    recv_files[0].write(data[3:])
-                    recv_files[1] = recv_files[1] - 1
+                    if recv_files[1] == None:
 
-                    if recv_files[1] == 0:
-                        recv_files[0].close()
-                        print('Arquivo recebido')
+                        if data.find('FIL', 3) == -1:
+                            recv_files[1] = int(data[3:])
+                        else:
+                            recv_files[1] = int(data[3:data.find('FIL', 3)])
+                        
+                            pos = 3
+                            while data.find('FIL', pos) != -1:
+                                chunk = data[pos:data.find('FIL', pos)].encode()
+                                recv_files[0].write(chunk)
+                                recv_files[1] = recv_files[1] - len(chunk)
+                                pos = data.find('FIL', pos)
+
+                            chunk = data[pos:]
+                            recv_files[0].write(chunk)
+                            recv_files[1] = recv_files[1] - len(chunk)
+                            
+                    else:
+                        print('Recebendo pedaço do arquivo ...')
+                        chunk = data[3:].encode()
+                        recv_files[0].write(chunk)
+                        recv_files[1] = recv_files[1] - len(chunk)
+
+                        print('missing: {}'.format(recv_files[1]))
+                        
+                        if recv_files[1] <= 0:
+                            recv_files[0].close()
+                            print('Arquivo recebido')
                 else:
                     print('###################################\n'
                           '>>> {}\n'

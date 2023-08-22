@@ -8,7 +8,7 @@ import time
 import math
 
 _HOST = 'localhost'
-_PORT = 9889
+_PORT = 9997
 _MAX_MSG_SIZE = 4096
 
 if __name__ == "__main__":
@@ -17,6 +17,8 @@ if __name__ == "__main__":
     key = None
     mask = None
     events = None
+
+    send_file = None
 
     # Iniciando o seletor como padrão
     sel = selectors.DefaultSelector()
@@ -31,7 +33,7 @@ if __name__ == "__main__":
     # Conectando
     soc.connect_ex((_HOST, _PORT))
 
-    sel.register(soc, selectors.EVENT_READ)
+    sel.register(soc, selectors.EVENT_READ | selectors.EVENT_WRITE)
 
     while True:
         events = sel.select()
@@ -60,18 +62,23 @@ if __name__ == "__main__":
                     # Reconhece o cmd copiar
                     if entry[3:6] == 'cpy':
                         caminho_arq = os.path.join(os.getcwd(), entry[6:len(entry)-1])
+
+                        send_file = [open(caminho_arq, 'rb'),
+                                     os.path.getsize(caminho_arq),
+                                     True]
+
+                        # soc.send(str(send_file[1]).encode())
                 
-                        with open(caminho_arq, 'rb') as file:
-                            # Dividindo o Arquivo
-                            tam_arq = str(math.ceil(os.path.getsize(caminho_arq) / 512))
-                            soc.send((tam_arq).encode())
-                            while True:
-                                data = file.read(512)
-                                if not data:
-                                    break
-                                soc.send('FIL{}'.format(data))
-                                print('Arquivo {} Enviado!'.format(entry[6:]))
-                                continue
+                        #with open(caminho_arq, 'rb') as file:
+                        #    # Dividindo o Arquivo
+                        #    tam_arq = str(math.ceil(os.path.getsize(caminho_arq) / 512))
+                        #    while True:
+                        #        data = file.read(512)
+                        #        if not data:
+                        #            break
+                        #        soc.send('FIL{}'.format(data).encode())
+                        #        print('Arquivo {} Enviado!'.format(entry[6:]))
+                        #        continue
                 
                     elif entry[3:] == 'cd':
                         soc.send(os.getcwd().encode())
@@ -86,6 +93,27 @@ if __name__ == "__main__":
                         print('Comando do Servidor >>> {}'.format(entry[6:]))
                         os.chdir(entry[6:len(entry)-1])
                         soc.send((os.getcwd()).encode())
-        
+
+            elif mask & selectors.EVENT_WRITE:
+                if send_file:
+                    if send_file[2]:
+                        print('Enviando tamanho ... {}'.format(send_file[1]))
+                        key.fileobj.send('FIL{}'.format(send_file[1]).encode())
+                        send_file[2] = False
+                    elif send_file[1] > 0:
+                        if send_file[1] > 512:
+                            print('Enviando pedaço ... 512')
+                            data = send_file[0].read(512)
+                            key.fileobj.send('FIL{}'.format(data).encode())
+                            send_file[1] = send_file[1] - 512
+                        else:
+                            print('Enviando pedaço ... {}'.format(send_file[1]))
+                            data = send_file[0].read(send_file[1])
+                            key.fileobj.send('FIL{}'.format(data).encode())
+                            send_file[1] = 0
+
+                        if send_file[1] == 0:
+                            send_file[0].close()
+                        
         #print("[{}] {}".format(key.fileobj, entry))
         #soc.send(entry.encode())
