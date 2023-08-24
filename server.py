@@ -4,7 +4,7 @@ import sys
 
 _HOST = 'localhost'
 _PORT = 9997
-_MAX_MSG_SIZE = 4096
+_MAX_MSG_SIZE = 8192
 
 if __name__ == "__main__":
     sel = None
@@ -69,7 +69,7 @@ if __name__ == "__main__":
                         name_arq = (entry[9:len(entry)-1])
                         print(name_arq)
                         # Abrindo arquivo com mesmo nome e guardando na posição 1
-                        recv_files[0] = open(name_arq, 'wb')
+                        recv_files[0] = open(name_arq, 'w+')
                         
                         recv_files[1] = None
                         
@@ -103,20 +103,31 @@ if __name__ == "__main__":
                         else:
                             recv_files[1] = int(data[3:data.find('FIL', 3)])
                         
-                            pos = 3
+                            pos = data.find('FIL', 3) + 3
                             while data.find('FIL', pos) != -1:
-                                chunk = data[pos:data.find('FIL', pos)].encode()
+                                chunk = data[pos:data.find('FIL', pos)]
                                 recv_files[0].write(chunk)
                                 recv_files[1] = recv_files[1] - len(chunk)
-                                pos = data.find('FIL', pos)
+                                pos = data.find('FIL', pos) + 3
 
                             chunk = data[pos:]
                             recv_files[0].write(chunk)
                             recv_files[1] = recv_files[1] - len(chunk)
-                            
+
+                            if recv_files[1] <= 0:
+                                recv_files[0].close()
+                                print('Arquivo recebido')
                     else:
                         print('Recebendo pedaço do arquivo ...')
-                        chunk = data[3:].encode()
+
+                        pos = 3
+                        while data.find('FIL', pos) != -1:
+                            chunk = data[pos:data.find('FIL', pos)]
+                            recv_files[0].write(chunk)
+                            recv_files[1] = recv_files[1] - len(chunk)
+                            pos = data.find('FIL', pos) + 3
+
+                        chunk = data[pos:]
                         recv_files[0].write(chunk)
                         recv_files[1] = recv_files[1] - len(chunk)
 
