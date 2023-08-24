@@ -126,6 +126,7 @@ if __name__ == "__main__":
                         else:
                             print('Enviando pedaço ... {}'.format(send_file[1]))
                             data = send_file[0].read(send_file[1])
+                            print(data)
                             key.fileobj.send('FIL{}'.format(data).encode())
                             send_file[1] = 0
 
