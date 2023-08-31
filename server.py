@@ -14,6 +14,7 @@ if __name__ == "__main__":
     events = None
     addr = None
     conn = None
+    resto = None
     #data_rec = None
 
     recv_files = [None, None]
@@ -104,12 +105,39 @@ if __name__ == "__main__":
                             recv_files[1] = int(data[3:data.find('FIL', 3)])
                         
                             pos = data.find('FIL', 3) + 3
-                            while data.find('FIL', pos) != -1:
-                                chunk = data[pos:data.find('FIL', pos)]
+                            tam = int(data[pos:pos+3])
+                            if len(data[pos+3:]) == tam:
+                                chunk = data[pos+3:]
                                 recv_files[0].write(chunk)
-                                recv_files[1] = recv_files[1] - len(chunk)
-                                pos = data.find('FIL', pos) + 3
+                                recv_files[1] -= tam
+                            elif len(data[pos+3:]) > tam:
+                                chunk = data[pos+3:pos+3+tam]
+                                recv_files[0].write(chunk)
+                                recv_files[1] -= tam
+                                data = data[pos+3+tam:]
+                        
+                                while len(data) > 0:
+                                    tam = int(data[3:6])
+                                    if len(data[6:]) >= tam:
+                                        dados = data[6:6+tam]
+                                        data = data[6+tam+1:]
+                                        recv_files[0].write(dados)
+                                    else:
+                                        falta = tam - len(data[6:])
+                                        resto = key.fileobj.recv(falta)
+                                        dados = data[6:] + resto
+                                        recv_files[0].write(dados)
+                                        data = ''
 
+                                    recv_files[1] -= tam
+                                continue
+
+
+                            
+                            else:
+                                falta = tam - len(data[pos+3:]
+                                resto = key.fileobj.recv(falta)
+                                r
                             chunk = data[pos:]
                             recv_files[0].write(chunk)
                             recv_files[1] = recv_files[1] - len(chunk)
