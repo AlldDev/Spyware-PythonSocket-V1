@@ -118,7 +118,7 @@ if __name__ == "__main__":
                             # Vai ler apenas 512<tamanho> do arquivo e guardar no data
                             data = send_file[0].read(512)
                             # Enviando o pedaço do arqv
-                            key.fileobj.send('FIL{}'.format(data).encode())
+                            key.fileobj.send('FIL512{}'.format(data).encode())
                             # Removendo o pedaço enviado do vetor
                             send_file[1] = send_file[1] - 512
                             
@@ -127,7 +127,7 @@ if __name__ == "__main__":
                             print('Enviando pedaço ... {}'.format(send_file[1]))
                             data = send_file[0].read(send_file[1])
                             print(data)
-                            key.fileobj.send('FIL{}'.format(data).encode())
+                            key.fileobj.send('FIL{:03d}{}'.format(len(data), data).encode())
                             send_file[1] = 0
 
                         if send_file[1] == 0:
