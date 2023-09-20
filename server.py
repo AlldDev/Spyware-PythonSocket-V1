@@ -83,6 +83,8 @@ if __name__ == "__main__":
                 data = key.fileobj.recv(_MAX_MSG_SIZE)
                 code = data[:3]
                 code = code.decode()
+                print('data recebida > {}'.format(data.decode()))
+                print('code > {}\n'.format(code))
 
                 # data_bytes = data
                 # data = data.decode()
@@ -99,20 +101,21 @@ if __name__ == "__main__":
                                 break;
 
                         tam = data[3:pos].decode()
-                        # tam = tam.decode()
                         tam = int(tam)
                         print('Tam. {}\n'.format(tam))
+                        print('Pos. {}\n'.format(pos))
+                        print('Data[pos:] > START{}END'.format(data[pos:].decode()))
 
-
-                        if data[3+tam:] == -1:
+                        if data[pos:].decode() == -1:
                             recv_files[1] = tam
                             print('O Tam. veio sozinho >>>{}\n'.format(tam))
     
                         else:
-                        
                             recv_files[1] = tam
                             print('Tamanho veio com mais algo!')
+                            print('data antes do pos > {}'.format(data.decode()))
                             pos = data[3+tam:]
+                            print('pos > {}\n'.format(pos))
                             code = data[pos:pos+3]
                             data = data[pos:]
                             #recv_files[1] = int(data[3:data.find('FIL', 3)])
