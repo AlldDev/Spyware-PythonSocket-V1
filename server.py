@@ -6,6 +6,8 @@ _HOST = 'localhost'
 _PORT = 9997
 _MAX_MSG_SIZE = 8192
 
+_PORT = int(sys.argv[1])
+
 if __name__ == "__main__":
     sel = None
     soc = None
@@ -95,75 +97,77 @@ if __name__ == "__main__":
                 # Recebendo os Dados
                 data = key.fileobj.recv(_MAX_MSG_SIZE)
                 data = data.decode()
+                print(data)
 
                 if data[:3] == 'FIL':
                     if recv_files[1] == None:
-
                         if data.find('FIL', 3) == -1:
                             recv_files[1] = int(data[3:])
+                            print('Tam. Veio Sozinho!!!')
                         else:
                             recv_files[1] = int(data[3:data.find('FIL', 3)])
-                        
+                            print('Tam. Veio com mais algo!!!')
                             pos = data.find('FIL', 3) + 3
-                            tam = int(data[pos:pos+3])
-                            if len(data[pos+3:]) == tam:
-                                chunk = data[pos+3:]
-                                recv_files[0].write(chunk)
-                                recv_files[1] -= tam
-                            elif len(data[pos+3:]) > tam:
-                                chunk = data[pos+3:pos+3+tam]
-                                recv_files[0].write(chunk)
-                                recv_files[1] -= tam
-                                data = data[pos+3+tam:]
-                        
-                                while len(data) > 0:
-                                    tam = int(data[3:6])
-                                    if len(data[6:]) >= tam:
-                                        dados = data[6:6+tam]
-                                        data = data[6+tam+1:]
-                                        recv_files[0].write(dados)
-                                    else:
-                                        falta = tam - len(data[6:])
-                                        resto = key.fileobj.recv(falta)
-                                        dados = data[6:] + resto
-                                        recv_files[0].write(dados)
-                                        data = ''
-
-                                    recv_files[1] -= tam
-                                continue
-
-
+                            #tam = int(data[pos:pos+3])
+                            data = data[pos-3:]
                             
-                            else:
-                                falta = tam - len(data[pos+3:]
-                                resto = key.fileobj.recv(falta)
-                                r
-                            chunk = data[pos:]
-                            recv_files[0].write(chunk)
-                            recv_files[1] = recv_files[1] - len(chunk)
+                            while len(data) > 0:
+                                if data[:3] != 'FIL':
+                                    print('Opss, Cortou errado!')
+                                    print(data + '\n')
+                                    
+                                tam = int(data[3:6])
+                                    
+                                if len(data[6:]) >= tam:
+                                    chunk = data[6:6+tam]
+                                    data = data[6+tam:]
+                                    recv_files[0].write(chunk)
+                                else:
+                                    falta = tam - len(data[6:])
+                                    resto = key.fileobj.recv(falta)
+                                    chunk = data[6:] + resto
+                                    recv_files[0].write(chunk)
+                                    data = ''
+                                print('Final do While 1')
+                                    
+                                recv_files[1] -= len(chunk)
 
                             if recv_files[1] <= 0:
                                 recv_files[0].close()
-                                print('Arquivo recebido')
+                                print('Arquivo Recebido!!!')
+
                     else:
-                        print('Recebendo pedaço do arquivo ...')
+                        print('Recebendo arquivo em pedaços...')
 
+                        tam = int(data[3:6])
                         pos = 3
-                        while data.find('FIL', pos) != -1:
-                            chunk = data[pos:data.find('FIL', pos)]
-                            recv_files[0].write(chunk)
-                            recv_files[1] = recv_files[1] - len(chunk)
-                            pos = data.find('FIL', pos) + 3
+                        while len(data) >= tam:
+                            if len(data[6:]) >= tam:
+                                chunk = data[6:6+tam]
+                                data = data[6+tam:]
+                                recv_files[0].write(chunk)
+                            else:
+                                falta = tam - len(data[6:])
+                                resto = key.fileobj.recv(falta)
+                                chunk = data[6:] + resto
+                                recv_files[0].write(chunk)
+                                data = ''
 
-                        chunk = data[pos:]
+                            recv_files[1] -= len(chunk)
+
+                        chunk = data[pos:] # aqui talvez tem um +3
                         recv_files[0].write(chunk)
-                        recv_files[1] = recv_files[1] - len(chunk)
+                        recv_files[1] -= len(chunk)
 
-                        print('missing: {}'.format(recv_files[1]))
-                        
+                        print('missing: '.format(recv_files[1]))
+
                         if recv_files[1] <= 0:
                             recv_files[0].close()
-                            print('Arquivo recebido')
+                
+
+
+
+
                 else:
                     print('###################################\n'
                           '>>> {}\n'
