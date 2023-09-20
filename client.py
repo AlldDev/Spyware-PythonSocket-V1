@@ -107,6 +107,7 @@ if __name__ == "__main__":
                     if send_file[2]:
                         print('Enviando tamanho ... {}'.format(send_file[1]))
                         key.fileobj.send('FIL{:03d}'.format(send_file[1]).encode())
+                        time.sleep(1e-9)
                         send_file[2] = False
 
                     # Se o tamanho do arq for maior que 0
@@ -119,6 +120,7 @@ if __name__ == "__main__":
                             m = m + data
                             # Enviando o pedaço do arqv
                             key.fileobj.send(m)
+                            time.sleep(1e-9)
                             # Removendo o pedaço enviado do vetor
                             send_file[1] = send_file[1] - 512
                             
@@ -129,6 +131,7 @@ if __name__ == "__main__":
                             m = 'FIL{:03d}'.format(len(data)).encode()
                             m = m + data
                             key.fileobj.send(m)
+                            time.sleep(1e-9)
                             send_file[1] = 0
 
                         if send_file[1] == 0:

@@ -17,31 +17,25 @@ if __name__ == "__main__":
     addr = None
     conn = None
     resto = None
-    #data_rec = None
 
     recv_files = [None, None]
 
     # Iniciando o seletor como padrão
     sel = selectors.DefaultSelector()
-
-    # AF_INET: Formato (Host, Port)
-    # SOCK_STREAM: TCP
     soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    # Fazendo a ligação do Socket com o endereço
     soc.bind((_HOST, _PORT))
-
     soc.listen(100)
-
-    # Setando como não bloqueante
     soc.setblocking(False)
+
+
 
     # Regsitrando nosso socket com o selector
     sel.register(soc, selectors.EVENT_READ)
-
     # Registrando o 'stdin' (usuário digitando) com o selector
     sel.register(sys.stdin.fileno(), selectors.EVENT_READ)
 
+
+    
     #################################
     # Loop Principal
     #################################
@@ -49,83 +43,100 @@ if __name__ == "__main__":
         events = sel.select()
 
         for key, mask in events:
-
             # Recebendo nova conexão
             if key.fileobj == soc:
                 conn, addr = soc.accept()
                 conn.setblocking(False)
                 sel.register(conn, selectors.EVENT_READ)
                 print('Nova conexão em {}'.format(key.fileobj))
-                
+
+
+
             # Se o Usuario Digitou Algo
             elif key.fileobj == sys.stdin.fileno():
                 # Coloca oque ele digitou aqui... (substitui o input)
-                entry = sys.stdin.readline()
+                data = sys.stdin.readline()
 
-                if entry[:4] == '/msg':
-                    conn.send(('msg' + entry[5:]).encode())
+                if data[:4] == '/msg':
+                    conn.send(('msg' + data[5:]).encode())
 
-                elif entry[:4] == '/cmd':
+
+
+                elif data[:4] == '/cmd':
                     # Caso for comando de Copiar
-                    if entry[5:8] == 'cpy':
-                        conn.send(('cmdcpy' + entry[9:]).encode())
-                        name_arq = (entry[9:len(entry)-1])
+                    if data[5:8] == 'cpy':
+                        conn.send(('cmdcpy' + data[9:]).encode())
+                        name_arq = (data[9:len(data)-1])
                         print(name_arq)
+                        
                         # Abrindo arquivo com mesmo nome e guardando na posição 1
-                        recv_files[0] = open(name_arq, 'w+')
-                        
+                        recv_files[0] = open(name_arq, 'wb')
                         recv_files[1] = None
-                        
-                        #with open(name_arq, 'wb') as file:
-                        #    fparts = int(conn.recv(1024).decode())
-                        #    while fparts > 0:
-                        #        print('Recebendo...')
-                        #        arqv = conn.recv(1024)
-                        #        if not arqv:
-                        #            break
-                        #        file.write(arqv)
-                        #        fparts -= 1
-                                
-                        #    print('{} Recebido...'.format(entry[9:]))
-                        #    continue
                         
                     else:
                         # Se for comandos "normais"        
-                        conn.send(('cmd' + entry[5:]).encode())
-                    
+                        conn.send(('cmd' + data[5:]).encode())
+
+            # Se não foi digitado nada, ele recebe as Respostas do cliente aqui
             else:
                 # Recebendo os Dados
                 data = key.fileobj.recv(_MAX_MSG_SIZE)
-                data = data.decode()
-                print(data)
+                code = data[:3]
+                code = code.decode()
 
-                if data[:3] == 'FIL':
+                # data_bytes = data
+                # data = data.decode()
+                # print(data)
+
+                if code == 'FIL':
+                    pos = 3
                     if recv_files[1] == None:
-                        if data.find('FIL', 3) == -1:
-                            recv_files[1] = int(data[3:])
-                            print('Tam. Veio Sozinho!!!')
+                        while True:
+                            try:
+                                c = int(data[pos:].decode())
+                                pos += 1
+                            except:
+                                break;
+
+                        tam = data[3:pos].decode()
+                        # tam = tam.decode()
+                        tam = int(tam)
+                        print('Tam. {}\n'.format(tam))
+
+
+                        if data[3+tam:] == -1:
+                            recv_files[1] = tam
+                            print('O Tam. veio sozinho >>>{}\n'.format(tam))
+    
                         else:
-                            recv_files[1] = int(data[3:data.find('FIL', 3)])
-                            print('Tam. Veio com mais algo!!!')
-                            pos = data.find('FIL', 3) + 3
-                            #tam = int(data[pos:pos+3])
-                            data = data[pos-3:]
+                        
+                            recv_files[1] = tam
+                            print('Tamanho veio com mais algo!')
+                            pos = data[3+tam:]
+                            code = data[pos:pos+3]
+                            data = data[pos:]
+                            #recv_files[1] = int(data[3:data.find('FIL', 3)])
+                            #print('Tam. Veio com mais algo!!!')
+                            #pos = data.find('FIL', 3) + 3
+                            #data = data[pos-3:]
+                            #data_bytes = data_bytes[pos-3:]
                             
                             while len(data) > 0:
-                                if data[:3] != 'FIL':
+                                if code != 'FIL':
                                     print('Opss, Cortou errado!')
-                                    print(data + '\n')
+                                    print(data.decode() + '\n')
                                     
                                 tam = int(data[3:6])
-                                    
+                                
                                 if len(data[6:]) >= tam:
                                     chunk = data[6:6+tam]
                                     data = data[6+tam:]
+                                    data_bytes = data_bytes[6+tam:]
                                     recv_files[0].write(chunk)
                                 else:
                                     falta = tam - len(data[6:])
                                     resto = key.fileobj.recv(falta)
-                                    chunk = data[6:] + resto
+                                    chunk = data_bytes[6:] + resto
                                     recv_files[0].write(chunk)
                                     data = ''
                                 print('Final do While 1')
@@ -143,19 +154,20 @@ if __name__ == "__main__":
                         pos = 3
                         while len(data) >= tam:
                             if len(data[6:]) >= tam:
-                                chunk = data[6:6+tam]
+                                chunk = data_bytes[6:6+tam]
                                 data = data[6+tam:]
+                                data_bytes = data_bytes[6+tam]
                                 recv_files[0].write(chunk)
                             else:
                                 falta = tam - len(data[6:])
                                 resto = key.fileobj.recv(falta)
-                                chunk = data[6:] + resto
+                                chunk = data_bytes[6:] + resto
                                 recv_files[0].write(chunk)
                                 data = ''
 
                             recv_files[1] -= len(chunk)
 
-                        chunk = data[pos:] # aqui talvez tem um +3
+                        chunk = data_bytes[pos:] # aqui talvez tem um +3
                         recv_files[0].write(chunk)
                         recv_files[1] -= len(chunk)
 
@@ -163,13 +175,8 @@ if __name__ == "__main__":
 
                         if recv_files[1] <= 0:
                             recv_files[0].close()
-                
 
-
-
-
+                # Se não for arquivo, ele mostra a resposta do cliente
                 else:
-                    print('###################################\n'
-                          '>>> {}\n'
-                          '###################################\n'
-                          '{}'.format(addr, data))
+                    print('\n'
+                          'Cliente >>> {}\n'.format(data))
