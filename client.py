@@ -11,6 +11,8 @@ _HOST = 'localhost'
 _PORT = 9997
 _MAX_MSG_SIZE = 4096
 
+_PORT = int(sys.argv[1])
+
 if __name__ == "__main__":
     sel = None
     soc = None
@@ -102,12 +104,9 @@ if __name__ == "__main__":
                         
             elif mask & selectors.EVENT_WRITE:
                 if send_file:
-                    # Por isso a 2 posição e Boleana, se for True envia o tamanho
-                    # ai mudamos para false, para não enviar o tamanho
-                    # mais de uma vez... Genial
                     if send_file[2]:
                         print('Enviando tamanho ... {}'.format(send_file[1]))
-                        key.fileobj.send('FIL{}'.format(send_file[1]).encode())
+                        key.fileobj.send('FIL{:03d}'.format(send_file[1]).encode())
                         send_file[2] = False
 
                     # Se o tamanho do arq for maior que 0
@@ -115,10 +114,11 @@ if __name__ == "__main__":
                         # Se o tamanho for maior que 512
                         if send_file[1] > 512:
                             print('Enviando pedaço ... 512')
-                            # Vai ler apenas 512<tamanho> do arquivo e guardar no data
                             data = send_file[0].read(512)
+                            m = 'FIL{:03d}'.format(len(data)).encode()
+                            m = m + data
                             # Enviando o pedaço do arqv
-                            key.fileobj.send('FIL512{}'.format(data).encode())
+                            key.fileobj.send(m)
                             # Removendo o pedaço enviado do vetor
                             send_file[1] = send_file[1] - 512
                             
@@ -126,8 +126,9 @@ if __name__ == "__main__":
                         else:
                             print('Enviando pedaço ... {}'.format(send_file[1]))
                             data = send_file[0].read(send_file[1])
-                            print(data)
-                            key.fileobj.send('FIL{:03d}{}'.format(len(data), data).encode())
+                            m = 'FIL{:03d}'.format(len(data)).encode()
+                            m = m + data
+                            key.fileobj.send(m)
                             send_file[1] = 0
 
                         if send_file[1] == 0:
