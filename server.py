@@ -106,7 +106,7 @@ if __name__ == "__main__":
                         print('Pos. {}\n'.format(pos))
                         print('Data[pos:] > START{}END'.format(data[pos:].decode()))
 
-                        if data[pos:].decode() == -1:
+                        if len(data[pos:]) == 0:
                             recv_files[1] = tam
                             print('O Tam. veio sozinho >>>{}\n'.format(tam))
     
