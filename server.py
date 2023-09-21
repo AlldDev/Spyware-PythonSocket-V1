@@ -83,7 +83,7 @@ if __name__ == "__main__":
                 data = key.fileobj.recv(_MAX_MSG_SIZE)
                 code = data[:3]
                 code = code.decode()
-                print('data recebida > {}'.format(data.decode()))
+                print('data recebida > {}'.format(data))
                 print('code > {}\n'.format(code))
 
                 # data_bytes = data
@@ -157,20 +157,20 @@ if __name__ == "__main__":
                         pos = 3
                         while len(data) >= tam:
                             if len(data[6:]) >= tam:
-                                chunk = data_bytes[6:6+tam]
+                                chunk = data[6:6+tam]
                                 data = data[6+tam:]
-                                data_bytes = data_bytes[6+tam]
+                                code = code[6+tam:]
                                 recv_files[0].write(chunk)
                             else:
                                 falta = tam - len(data[6:])
                                 resto = key.fileobj.recv(falta)
-                                chunk = data_bytes[6:] + resto
+                                chunk = data[6:] + resto
                                 recv_files[0].write(chunk)
                                 data = ''
 
                             recv_files[1] -= len(chunk)
 
-                        chunk = data_bytes[pos:] # aqui talvez tem um +3
+                        chunk = data[pos:] # aqui talvez tem um +3
                         recv_files[0].write(chunk)
                         recv_files[1] -= len(chunk)
 
