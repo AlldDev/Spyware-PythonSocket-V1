@@ -49,8 +49,8 @@ if __name__ == "__main__":
                     
                 # Tratando se for msg
                 if entry[:3] == 'msg':
-                    print(entry[3:])
-                    soc.send(('Mensagem Recebida! >>> {}'.format(entry[3:])).encode())
+                    print('Servidor >>> {}'.formatentry[3:]))
+                    # soc.send(('Mensagem Recebida! >>> {}'.format(entry[3:])).encode())
                     
                     
                     

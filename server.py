@@ -22,6 +22,7 @@ if __name__ == "__main__":
 
     # Iniciando o seletor como padrão
     sel = selectors.DefaultSelector()
+    # Iniciando Socket
     soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     soc.bind((_HOST, _PORT))
     soc.listen(100)
@@ -61,7 +62,7 @@ if __name__ == "__main__":
                     if data[5:8] == 'cpy':
                         conn.send(('cmdcpy' + data[9:]).encode())
                         name_arq = (data[9:len(data)-1])
-                        print(name_arq)
+                        print('Arquivo Selecionado >> {}'.format(name_arq))
                         # Abrindo arquivo com mesmo nome e guardando na posição 1
                         recv_files[0] = open(name_arq, 'wb')
                         recv_files[1] = None
@@ -126,7 +127,7 @@ if __name__ == "__main__":
                                 recv_files[0].write(data)
                                 data = ''
                             
-                            # Atualizando dados já recebios
+                            # Atualizando dados já recebidos
                             recv_files[1] = recv_files[1] - csize
 
                         if recv_files[1] <= 0:
@@ -163,7 +164,7 @@ if __name__ == "__main__":
                                 recv_files[0].write(data)
                                 data = ''
 
-                            # Atualizando dados já recebios
+                            # Atualizando dados já recebidos
                             recv_files[1] = recv_files[1] - csize
 
                         if recv_files[1] <= 0:

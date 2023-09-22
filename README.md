@@ -4,7 +4,7 @@
 
 **Colaboradores:** Bruno C. Marini, Alexandre Queiroz
 
-**Equipe de Suporte:** Julio, Diego, Kayle, Jean
+**Equipe de Suporte:** Julio C. Fernandes, Diego S. Fernandes, Kayle, Jean
 
 ## Sobre
 
