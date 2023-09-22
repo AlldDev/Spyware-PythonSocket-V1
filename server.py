@@ -50,8 +50,6 @@ if __name__ == "__main__":
                 sel.register(conn, selectors.EVENT_READ)
                 print('Nova conexão em {}'.format(key.fileobj))
 
-
-
             # Se o Usuario Digitou Algo
             elif key.fileobj == sys.stdin.fileno():
                 data = sys.stdin.readline() # Substitui o input (bloqueante)
@@ -81,120 +79,96 @@ if __name__ == "__main__":
                 #arq.write(data)
                 #print(len(data.decode()))
                 #####################################
-                
+
+                # Recuperando o código da mensagem
                 code = data[:3]
                 code = code.decode()
-                # print('data recebida > {}'.format(data.decode()))
-                # print('code > {}\n'.format(code))
-                
-                # data_bytes = data
-                # data = data.decode()
-                # print(data)
-                
+
                 if code == 'FIL':
+                    # Encontrando o tamanho do arquivo que será recebido
                     pos = 3
                     if recv_files[1] == None:
                         while True:
                             try:
-                                c = int(data[pos:].decode())
-                                pos += 1
+                                int(data[pos:pos+1].decode())
+                                pos = pos + 1
                             except:
-                                break;
-                            
-                        tam = data[3:pos].decode()
-                        tam = int(tam)
-                        print('Tam. {}'.format(tam))
-                        print('Pos. {}'.format(pos))
-                        # print('Data[pos:] > START{}END\n'.format(data[pos:].decode()))
+                                break
                         
-                        
-                        
-                        if len(data[pos:]) == 0:
-                            recv_files[1] = tam
-                            print('O Tam. veio sozinho >>>{}\n'.format(tam))
-                            
-                        # Se veio mais algum junto ! tratar depois
-                        else:
-                            recv_files[1] = tam
-                            print('Tamanho veio com mais algo!')
-                            # print('data antes do pos > {}'.format(data.decode()))
-                            pos = data[3+tam:]
-                            print('pos > {}\n'.format(pos))
-                            code = data[pos:pos+3]
-                            data = data[pos:]
-                            #recv_files[1] = int(data[3:data.find('FIL', 3)])
-                            #print('Tam. Veio com mais algo!!!')
-                            #pos = data.find('FIL', 3) + 3
-                            #data = data[pos-3:]
-                            #data_bytes = data_bytes[pos-3:]
-                            
-                            while len(data) > 0:
-                                if code != 'FIL':
-                                    print('Opss, Cortou errado!')
-                                    # print(data.decode() + '\n')
-                                    
-                                # print(tam)
-                                
-                                if len(data[6:]) >= tam:
-                                    chunk = data[6:6+tam]
-                                    data = data[6+tam:]
-                                    # data_bytes = data_bytes[6+tam:]
-                                    recv_files[0].write(chunk)
-                                else:
-                                    falta = tam - len(data[6:])
-                                    resto = key.fileobj.recv(falta)
-                                    chunk = data[6:] + resto
-                                    recv_files[0].write(chunk)
-                                    data = ''
-                                print('Final do While 1')
-                                
-                                recv_files[1] -= len(chunk)
-                                
-                            if recv_files[1] <= 0:
-                                recv_files[0].close()
-                                print('Arquivo Recebido!!!')
-                                
-                    else:
-                        print('Recebendo arquivo em pedaços...\n')
-                        
-                        while True:
-                            try:
-                                c = int(data[pos:].decode())
-                                pos += 1
-                            except:
-                                break;
+                        # Salvando o tamanho do arquivo que não foi recebido ainda
+                        recv_files[1] = int(data[3:pos].decode())
 
-                        # print('Data antes do Tam > {}'.format(data.decode()))
-                        print('Pos. antes do Tam > {}'.format(pos))
-                        tam = data[3:3+pos].decode()                                                                 
-                        tam = int(tam)
-                        print('Tamanho do Pedaço > {}\n'.format(tam))
-                        pos = 3
-                            
-                        while len(data) >= tam:
-                            if len(data[6:]) >= tam:
-                                chunk = data[6:6+tam]
-                                data = data[6+tam:]
-                                #data_bytes = data_bytes[6+tam]
-                                recv_files[0].write(chunk)
+                        # Cortando o pedaço da mensagem que já foi utilizado
+                        data = data[pos:]
+                        
+                        # Verificando se ainda sobraram dados para serem tratados
+                        while len(data) > 0:
+                            code = data[:3].decode()
+
+                            # Verificação de sanidade, este código não deveria ser executado
+                            if code != 'FIL':
+                                print('Recebemos algo errado!')
+
+                            # Encontrando o tamanho do chunk
+                            csize = int(data[3:6].decode())
+
+                            # Verificando se temos o chunk inteiro na mensagem
+                            if len(data[6:]) >= csize:
+                                # Temos o pedaço inteiro
+                                chunk = data[6:6 + csize]  # Separando o chunk
+                                data = data[6 + csize:]    # Atualizando a data
+                                recv_files[0].write(chunk) # Escrevendo no arquivo
                             else:
-                                falta = tam - len(data[6:])
-                                resto = key.fileobj.recv(falta)
-                                chunk = data[6:] + resto
+                                # É necessário receber mais dados
+                                chunk = data[6:]
+                                data = key.fileobj.recv(csize - len(chunk))
                                 recv_files[0].write(chunk)
+                                recv_files[0].write(data)
                                 data = ''
-                                
-                            recv_files[1] -= len(chunk)
                             
-                        chunk = data[pos+3:] # aqui talvez tem um +3
-                        recv_files[0].write(chunk)
-                        recv_files[1] -= len(chunk)
-                        
-                        print('missing: {}'.format(recv_files[1]))
-                        
+                            # Atualizando dados já recebios
+                            recv_files[1] = recv_files[1] - csize
+
                         if recv_files[1] <= 0:
                             recv_files[0].close()
-                            print('Arquivo Recebido!')
+                            print('Arquivo recebido (em uma mensagem)!')
+                            
+                    else:
+                        # else recv_files[1] != None
+                        # Já recebemos o tamanho do arquivo e possívelmente alguns pedaços
+                        csize = int(data[3:6].decode())
+
+                        # Verificando se ainda sobraram dados para serem tratados
+                        while len(data) > 0:
+                            code = data[:3].decode()
+
+                            # Verificação de sanidade, este código não deveria ser executado
+                            if code != 'FIL':
+                                print('Recebemos algo errado!')
+
+                            # Encontrando o tamanho do chunk
+                            csize = int(data[3:6].decode())
+
+                            # Verificando se temos o chunk inteiro na mensagem
+                            if len(data[6:]) >= csize:
+                                # Temos o pedaço inteiro
+                                chunk = data[6:6 + csize]  # Separando o chunk
+                                data = data[6 + csize:]    # Atualizando a data
+                                recv_files[0].write(chunk) # Escrevendo no arquivo
+                            else:
+                                # É necessário receber mais dados
+                                chunk = data[6:]
+                                data = key.fileobj.recv(csize - len(chunk))
+                                recv_files[0].write(chunk)
+                                recv_files[0].write(data)
+                                data = ''
+
+                            # Atualizando dados já recebios
+                            recv_files[1] = recv_files[1] - csize
+
+                        if recv_files[1] <= 0:
+                            recv_files[0].close()
+                            print('Arquivo recebido! (em várias mensagens)')
                             
                 # Se não for arquivo, ele mostra a resposta do cliente
                 else:
