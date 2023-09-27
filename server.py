@@ -3,8 +3,8 @@ import selectors
 import sys
 import time
 
-_HOST = '10.0.0.197'
-_PORT = 9997
+_HOST = '192.168.100.165'
+_PORT = 9991
 _MAX_MSG_SIZE = 8192
 
 _PORT = int(sys.argv[1])
@@ -35,8 +35,6 @@ if __name__ == "__main__":
     soc.listen(100)
     soc.setblocking(False)
 
-
-
     # Regsitrando nosso socket com o selector
     sel.register(soc, selectors.EVENT_READ)
     # Registrando o 'stdin' (usuário digitando) com o selector
@@ -48,8 +46,8 @@ if __name__ == "__main__":
     # Loop Principal
     #################################
     while True:
-        #try:
-        if True:
+        try:
+        #if True:
             events = sel.select()
 
             for key, mask in events:
@@ -91,7 +89,7 @@ if __name__ == "__main__":
                 else:
                     # Recebendo os Dados
                     data = key.fileobj.recv(_MAX_MSG_SIZE)
-                    print(data)
+                    #print(data)
 
                     # Recuperando o código da mensagem
                     code = data[:3]
@@ -116,7 +114,7 @@ if __name__ == "__main__":
 
                             # Verificando se ainda sobraram dados para serem tratados
                             while len(data) > 0:
-                                print('A LEN DATA: {}'.format(len(data)))
+                                #print('A LEN DATA: {}'.format(len(data)))
                                 code = data[:3].decode()
 
                                 # Verificação de sanidade, este código não deveria ser executado
@@ -125,7 +123,7 @@ if __name__ == "__main__":
 
                                 # Encontrando o tamanho do chunk
                                 csize = int(data[3:6].decode())
-                                print('A CSIZE >>>>>> {}'.format(csize))
+                                #print('A CSIZE >>>>>> {}'.format(csize))
 
                                 # Verificando se temos o chunk inteiro na mensagem
                                 if len(data[6:]) >= csize:
@@ -137,7 +135,7 @@ if __name__ == "__main__":
                                     # É necessário receber mais dados
                                     chunk = data[6:]
                                     data = key.fileobj.recv(csize - len(chunk))
-                                    print('A LEN CHUNK: {} e LEN DATA: {}\n\n'.format(len(chunk), len(data)))
+                                    #print('A LEN CHUNK: {} e LEN DATA: {}\n\n'.format(len(chunk), len(data)))
                                     recv_files[0].write(chunk)
                                     recv_files[0].write(data)
                                     data = ''
@@ -156,7 +154,7 @@ if __name__ == "__main__":
 
                             # Verificando se ainda sobraram dados para serem tratados
                             while len(data) > 0:
-                                print('B LEN DATA: {}'.format(len(data)))
+                                #print('B LEN DATA: {}'.format(len(data)))
                                 code = data[:3].decode()
 
                                 # Verificação de sanidade, este código não deveria ser executado
@@ -165,23 +163,23 @@ if __name__ == "__main__":
 
                                 # Encontrando o tamanho do chunk
                                 csize = int(data[3:6].decode())
-                                print('B CSIZE >>>>>> {}'.format(csize))
+                                #print('B CSIZE >>>>>> {}'.format(csize))
 
 
                                 # Verificando se temos o chunk inteiro na mensagem
-                                print('my dude {} >= {}'.format(len(data[6:]), csize))
+                                #print('my dude {} >= {}'.format(len(data[6:]), csize))
                                 if len(data[6:]) >= csize:
                                     # Temos o pedaço inteiro
                                     chunk = data[6:6 + csize]  # Separando o chunk
                                     data = data[6 + csize:]    # Atualizando a data
                                     recv_files[0].write(chunk) # Escrevendo no arquivo
                                 else:
-                                    print('ELSE')
+                                    #print('ELSE')
                                     # É necessário receber mais dados
                                     chunk = data[6:]
                                     time.sleep(0.01)
-                                    data = key.fileobj.recv(csize - len(chunk))
-                                    print('B LEN CHUNK: {} e LEN DATA: {}\n\n'.format(len(chunk), len(data)))
+                                    data = key.fileobj.recv(csize - len(chunk)) # Aqui fazemos um try para caso ele não consiga receber, ele fica em espera até conseguir.
+                                    #print('B LEN CHUNK: {} e LEN DATA: {}\n\n'.format(len(chunk), len(data)))
                                     recv_files[0].write(chunk)
                                     recv_files[0].write(data)
                                     data = ''
@@ -204,12 +202,11 @@ if __name__ == "__main__":
                         print('\n'
                               '{}<<<===== Spyware (@) =====>>> {}\n'
                               '{}\n'.format(cores['blue'], cores['green'], data.decode(), cores['limpa']))
-        #except OSError as error:
-
-        #    if ext == True:
-        #        exit()
-        #        break
-        ##    # Isso não irá desconectar os clientes... eu acho...
-        #    print('{}Error: Reiniciando Servidor!!!{}'.format(cores['red'], cores['limpa']))
-        #    print(str(error))
-        #    continue
+        except OSError as error:
+            if ext == True:
+                exit()
+                break
+            # Isso não irá desconectar os clientes... eu acho...
+            print('{}Error: Reiniciando Servidor!!!{}'.format(cores['red'], cores['limpa']))
+            print(str(error))
+            continue
