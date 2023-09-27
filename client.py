@@ -5,8 +5,8 @@ import time
 import subprocess
 import os
 
-_HOST = 'localhost'
-_PORT = 9995
+_HOST = '10.0.0.197'
+_PORT = 9991
 _MAX_MSG_SIZE = 4096
 
 # _PORT = int(sys.argv[1])
@@ -14,20 +14,21 @@ _MAX_MSG_SIZE = 4096
 def conn_server(sel, soc):
     sel = selectors.DefaultSelector()
     soc = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    soc.setblocking(False)
-    soc.connect_ex((_HOST, _PORT))
-    sel.register(soc, selectors.EVENT_READ | selectors.EVENT_WRITE)
+    # soc.connect_ex((_HOST, _PORT))
+    # sel.register(soc, selectors.EVENT_READ | selectors.EVENT_WRITE)
     while True:
         try:
             print('Tentando conectar ao servidor em {}:{}...'.format(_HOST, _PORT))
 
             soc.connect((_HOST, _PORT))
-            print('Conexão bem-sucedida!')
+            soc.setblocking(False)
+            print('Conectado ao Servidor!!!')
             break
         except socket.error as erro:
             print(str(erro))
             print('Tentando novamente em 3 segundos...')
             time.sleep(3)
+    sel.register(soc, selectors.EVENT_READ | selectors.EVENT_WRITE)
     return sel, soc
 
 if __name__ == "__main__":
@@ -116,8 +117,8 @@ if __name__ == "__main__":
                     if send_file:
                         if send_file[2]:
                             print('Enviando tamanho ... {}'.format(send_file[1]))
-                            key.fileobj.send('FIL{:03d}'.format(send_file[1]).encode())
-                            # time.sleep(1e-9)
+                            key.fileobj.send('FIL{}'.format(send_file[1]).encode())
+                            #Etime.sleep(1e-9)
                             send_file[2] = False
 
                         # Se o tamanho do arq for maior que 0
@@ -129,7 +130,7 @@ if __name__ == "__main__":
                                 m = 'FIL{:03d}'.format(len(data)).encode()
                                 m = m + data
                                 key.fileobj.send(m)
-                                # time.sleep(1e-9)
+                                #time.sleep(1e-9)
                                 # Removendo o pedaço enviado do tamanho do vetor
                                 send_file[1] = send_file[1] - 512
 
@@ -140,7 +141,7 @@ if __name__ == "__main__":
                                 m = 'FIL{:03d}'.format(len(data)).encode()
                                 m = m + data
                                 key.fileobj.send(m)
-                                # time.sleep(1e-9)
+                                #time.sleep(1e-9)
                                 send_file[1] = 0
 
                             if send_file[1] == 0:
