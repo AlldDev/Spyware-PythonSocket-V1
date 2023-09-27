@@ -5,7 +5,7 @@ import time
 import subprocess
 import os
 
-_HOST = '10.0.0.197'
+_HOST = '192.168.100.165'
 _PORT = 9991
 _MAX_MSG_SIZE = 4096
 
