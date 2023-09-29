@@ -14,6 +14,9 @@
 
 > Nosso Script atua com uma conexão cliente/servidor onde ocorre troca de dados via sockets de rede, a magia acontece quando invertemos essa conexão, ao invés do cliente requisitar coisas ao servidor, é o nosso servidor que faz as requisições ao cliente, usando algumas bibliotecas e um pouco de engenharia reversa conseguimos enviar comandos e parâmetros para serem executado na máquina da vítima, tendo acesso a navegar nas suas pastas, ver seus arquivos e até copiá-los para o nosso servidor, desta forma, o script pode ser hospedado em uma nuvem (AWS, por exemplo) e receber várias conexões (infecções) de vários clientes (Vitimas), assim podendo criar um ataque coordenado onde todos responde ao mesmo comando, ou até mesmo gerando ataques individuais (em desenvolvimento).
 
+## Para Dev's
+> Foi utilizado a linguagem de programação python 3.11.4 com algumas bibliotecas descritas no início do código.
+
 [!IMPORTANT]
 > Esse é um projeto em desenvolvimento, erros e bugs podem ocorrer!
 
