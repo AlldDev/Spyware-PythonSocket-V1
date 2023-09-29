@@ -1,8 +1,8 @@
 # ssh_primitive_reverse
 
-**Authores:** Alessandro C. Rosão, Yago J. Ramos
+**Authores:** @AlldDev, @YRammus
 
-**Colaboradores:** Bruno C. Marini, Alexandre Queiroz
+**Colaboradores:** @bcmarini, Alexandre Queiroz
 
 **Equipe de Suporte:** Julio C. Fernandes, Diego S. Fernandes, Kayle, Jean
 
