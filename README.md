@@ -1,4 +1,4 @@
-# ssh_primitive_reverse
+# Spyware via Sockets.py
 
 **Authores:** @AlldDev, @YRammus
 
