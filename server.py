@@ -8,7 +8,7 @@ _HOST = '192.168.100.165'
 _PORT = 9991
 _MAX_MSG_SIZE = 4096 # estava 8192
 
-_PORT = int(sys.argv[1])
+_PORT = int(sys.argv[1]) if len(sys.argv) > 1 else _PORT
 
 
 
