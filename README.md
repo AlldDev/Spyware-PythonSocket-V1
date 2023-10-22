@@ -11,7 +11,9 @@
 
 > [!NOTE]
 > Foi utilizado a linguagem de programação python 3.11.4 com algumas bibliotecas descritas no início do código.
+> 
 > [!IMPORTANT]
 > Esse é um projeto em desenvolvimento, erros e bugs podem ocorrer!
+> 
 > [!WARNING]
 > Esse Script pode causar problemas em sua máquina, problemas com terceiros ou problemas com a LEI, Reforço aqui que serve apenas para Estudo, Não queremos gerar danos a **NINGUEM**, então se não sabe o que está fazendo, ou como funciona, por favor **NÃO MEXA**
