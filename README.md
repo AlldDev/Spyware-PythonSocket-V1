@@ -49,7 +49,7 @@ Evite clicar em links suspeitos ou baixar software de fontes não confiáveis.
 
 Utilize firewalls para monitorar e controlar o tráfego de rede.
 
-Eduque-se e sua equipe sobre as práticas seguras de navegação na internet e conscientização sobre phishing.
+Eduque-se e sua equipe sobre as práticas seguras de navegação na internet e conscientização sobre phishing.(Oque é o Phishing e como funciona? ![clique aqui](https://github.com/AlldDev/Mail-Phishing-SMTP))
 
 Realize auditorias de segurança regularmente para identificar e corrigir possíveis vulnerabilidades.
 
