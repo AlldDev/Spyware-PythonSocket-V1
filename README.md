@@ -1,7 +1,7 @@
 # Spyware via PythonSockets
-**Authores:** @AlldDev, @YRammus
-**Colaboradores:** @bcmarini, Alexandre Queiroz
-**Equipe de Suporte:** Julio C. Fernandes, Diego S. Fernandes, Kayle, Jean
+- **Authores:** @AlldDev, @YRammus
+- **Orientadores:** @bcmarini, Alexandre Queiroz
+- **Colaboradores:** Julio Fernandes, Diego Fernandes, Kayle Evangelista, Jean Mendonça
 
 ![](https://github.com/AlldDev/Spyware-PythonSocket-V1/blob/main/others/01.png)
 
